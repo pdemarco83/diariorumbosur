@@ -40,8 +40,6 @@ if ( $paged >= 2 || $page >= 2 )
 echo ' | ' . sprintf( __( 'Page %s', 'diariorumbosur' ), max( $paged, $page ) );
  
 ?></title>
-<link rel="profile" href="http://gmpg.org/xfn/11" />
-<link rel="pingback" href="<?php bloginfo( 'pingback_url' ); ?>" />
 <!--[if lt IE 9]>
 <script src="<?php echo get_template_directory_uri(); ?>/js/html5.js" type="text/javascript"></script>
 <![endif]-->
@@ -51,22 +49,24 @@ echo ' | ' . sprintf( __( 'Page %s', 'diariorumbosur' ), max( $paged, $page ) );
 <body <?php body_class(); ?>>
 
 <div id="page" class="hfeed site">
-     <header id="masthead" class="site-header" role="banner">
-        <hgroup>
-		     <h1 class="site-title"><a href="<?php echo home_url( '/' ); ?>" title="<?php echo esc_attr( get_bloginfo( 'name', 'display' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></h1>
-		     <h2 class="site-description"><?php bloginfo( 'description' ); ?></h2>
-		</hgroup>
-		<?php $header_image = get_header_image();
-        if ( ! empty( $header_image ) ) { ?>
-            <a href="<?php echo esc_url( home_url( '/' ) ); ?>" title="<?php echo esc_attr( get_bloginfo( 'name', 'display' ) ); ?>" rel="home">
-                <img src="<?php header_image(); ?>" width="<?php echo get_custom_header()->width; ?>" height="<?php echo get_custom_header()->height; ?>" alt="" />
-            </a>
-		<?php } // if ( ! empty( $header_image ) ) 
-		?>
-         <nav role="navigation" class="site-navigation main-navigation">
-		 	<h1 class="assistive-text"><?php _e( 'Menu', 'diariorumbosur' ); ?></h1>
-		 	<div class="assistive-text skip-link"><a href="#content" title="<?php esc_attr_e( 'Skip to content', '_s' ); ?>"><?php _e( 'Skip to content', 'diariorumbosur' ); ?></a></div>
-		 	<?php wp_nav_menu( array( 'theme_location' => 'primary' ) ); ?>
-	 	</nav><!-- .site-navigation .main-navigation -->
-     </header><!-- #masthead .site-header -->
-<div id="main" class="site-main">
+	<div class="pre-header">
+		<div class="fecha">Lunes 23 de septiembre de 2013</div>
+		<div class="tiempo">Buenos Aires, Argentina</div>			
+		<div class="social">F T M</div>	
+	</div>
+	<header id="masthead" class="site-header" role="banner">
+		<div class="header">
+			<div class="logo">
+				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" title="<?php echo esc_attr( get_bloginfo( 'name', 'display' ) ); ?>" rel="home">
+            		<img src="<?php echo get_bloginfo('template_directory');?>/img/diario-rumbo-sur-logo.jpg">
+            	</a>
+			</div>
+			<nav role="navigation" class="site-navigation main-navigation">
+				<h1 class="assistive-text"><?php _e( 'Menu', 'diariorumbosur' ); ?></h1>
+				<div class="assistive-text skip-link"><a href="#content" title="<?php esc_attr_e( 'Skip to content', '_s' ); ?>"><?php _e( 'Skip to content', 'diariorumbosur' ); ?></a></div>
+				<?php wp_nav_menu( array( 'theme_location' => 'primary' ) ); ?>
+ 			</nav><!-- .site-navigation .main-navigation -->
+		</div>				
+	</header>
+	<div class="ultimo-momento">LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO </div>
+	<div id="main" class="site-main">
