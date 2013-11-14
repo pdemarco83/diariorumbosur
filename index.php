@@ -13,34 +13,109 @@
 */
  
 get_header(); ?>
- 
+
+
+<div id="top" class="content-area">
+    <div id="top-content" class="site-content" role="main">
+    
+<?php // las 3 noticias destacadas
+$args = array(
+    'posts_per_page' => 3,
+    'post_type' => 'post',
+    'tax_query' => array(
+        array(
+            'taxonomy' => 'Portada',
+            'field' => 'slug',
+            'terms' => 'uno'
+        )
+    )
+);
+
+// The Query
+$the_query = new WP_Query( $args);
+// The Loop
+if ( $the_query->have_posts() ) {
+    while ( $the_query->have_posts() ) {
+        $the_query->the_post();
+        get_template_part( 'destacadas', get_post_format() );
+    }
+} else {
+    // no posts found
+}
+/* Restore original Post Data */
+wp_reset_postdata();
+?>
+
+    </div><!-- #content .site-content -->
+</div><!-- #primary .content-area -->
+
 <div id="primary" class="content-area">
     <div id="content" class="site-content" role="main">
  
-    <?php if ( have_posts() ) : ?>
- 
-        <?php diariorumbosur_content_nav( 'nav-above' ); ?>
- 
-        <?php /* Start the Loop */ ?>
-        <?php while ( have_posts() ) : the_post(); ?>
- 
-            <?php
-                /* Include the Post-Format-specific template for the content.
-                 * If you want to overload this in a child theme then include a file
-                 * called content-___.php (where ___ is the Post Format name) and that will be used instead.
-                 */
-                get_template_part( 'content', get_post_format() );
-            ?>
- 
-        <?php endwhile; ?>
- 
-        <?php diariorumbosur_content_nav( 'nav-below' ); ?>
- 
-    <?php else : ?>
- 
-        <?php get_template_part( 'no-results', 'index' ); ?>
- 
-    <?php endif; ?>
+<?php // con foto, primera de la izquierda
+
+$args = array(
+    'posts_per_page' => 1,
+    'post_type' => 'post',
+    'tax_query' => array(
+        array(
+            'taxonomy' => 'Portada',
+            'field' => 'slug',
+            'terms' => 'tapa'
+        )
+    )
+);
+// The Query
+$the_query = new WP_Query( $args);
+// The Loop
+if ( $the_query->have_posts() ) {
+    while ( $the_query->have_posts() ) {
+        $the_query->the_post();
+        get_template_part( 'detapa', get_post_format() );
+    }
+} else {
+    // no posts found
+}
+/* Restore original Post Data */
+wp_reset_postdata();
+?>
+
+
+
+<?php // primer bloque de negativas
+
+$args = array(
+    'posts_per_page' => 2,
+    'post_type' => 'post',
+    'tax_query' => array(
+        array(
+            'taxonomy' => 'Portada',
+            'field' => 'slug',
+            'terms' => 'par-1'
+        )
+    )
+);
+
+
+
+// The Query
+$the_query = new WP_Query( $args);
+
+// The Loop
+
+if ( $the_query->have_posts() ) {
+    while ( $the_query->have_posts() ) {
+        $the_query->the_post();?>
+        <div class='<?php echo (++$j % 2 == 0) ? 'evenpost' : 'oddpost'; ?>'>
+        <?php
+        get_template_part( 'pares', get_post_format() );
+    }
+} else {
+    // no posts found
+}
+/* Restore original Post Data */
+wp_reset_postdata();
+?>
  
     </div><!-- #content .site-content -->
 </div><!-- #primary .content-area -->

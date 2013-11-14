@@ -50,7 +50,9 @@ echo ' | ' . sprintf( __( 'Page %s', 'diariorumbosur' ), max( $paged, $page ) );
 
 <div id="page" class="hfeed site">
 	<div class="pre-header">
-		<div class="fecha">Lunes 23 de septiembre de 2013</div>
+		<div class="fecha"><?php setlocale(LC_TIME, 'es_ES');    
+			echo ucwords (strftime('%A'));
+			echo strftime (' %d de %B de %Y'); ?></div>
 		<div class="tiempo">Buenos Aires, Argentina</div>			
 		<div class="social">F T M</div>	
 	</div>

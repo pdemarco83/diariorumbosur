@@ -35,6 +35,12 @@ function diariorumbosur_setup() {
      * Custom functions that act independently of the theme templates
      */
     require( get_template_directory() . '/inc/tweaks.php' );
+
+    /**
+     * Make theme available for translation
+     * Translations can be filed in the /languages/ directory
+     */
+    load_theme_textdomain( 'diariorumbosur', get_template_directory() . '/languages' );
     
     /**
      * This theme uses wp_nav_menu() in one location.
@@ -94,3 +100,21 @@ add_action( 'wp_enqueue_scripts', 'diariorumbosur_scripts' );
  * Hooks into the after_setup_theme action.
  *
  */
+
+if ( function_exists( 'add_theme_support' ) ) { 
+add_theme_support( 'post-thumbnails' );
+}
+
+function portada_init() {
+    // create a new taxonomy
+    register_taxonomy(
+        'Portada',
+        'post',
+        array(
+            'label' => __( 'Portada' ),
+            'query_var' => true,
+            'rewrite' => array( 'slug' => 'portada' ),
+        )
+    );
+}
+add_action( 'init', 'portada_init' );
