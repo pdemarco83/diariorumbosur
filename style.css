@@ -351,9 +351,9 @@ a:active {
 .site-title,
 .entry-title,
 .page-title,
+.widget-title,
 .entry-content,
 .entry-summary,
-.widget-title,
 .comments-title,
 .comment .reply,
 .comment-meta,
@@ -370,7 +370,7 @@ a:active {
 .header
  {
     margin: 0 auto;
-	max-width: 1024px;
+	width: 1024px;
 	overflow: hidden;
 }
 #main {
@@ -378,7 +378,7 @@ a:active {
     overflow: hidden;
 }
 
-#top {
+#top-content {
 	float: left;
 	margin:0;
 	padding:0;
@@ -386,33 +386,30 @@ a:active {
 	margin-top: 2rem;
 }
 
-#top-content {
-	margin:0;
-}
-
 #primary {
+	float: left;
+	margin: 0;
+	padding: 0;
+	width: 70rem;
+}
+.site-content {
+	width:68rem;
+	margin: 0 27% 0 0;
 	float: left;
 	margin: 0;
 	padding: 0;
 	width: 70rem;
 	margin-top: 2rem;
 }
-#primary-content {
-	width:68rem;
-	margin: 0 27% 0 0;
-}
-#secondary,
-#tertiary {
-	background: #ede8df;
+#secondary {
+	background: #ffffff;
    	float: right;
-   	margin: 1em 1em 0;
-    padding: 2em 2em 0;
+   	margin: 0 0;
     position: relative;
-    width: 20%;
+    width: 30rem;
+    margin-top: 2rem;
 }
-#tertiary {
-	padding-top: 0;
-}
+
 .site-footer {
 	clear: both;
 	width: 100%;
@@ -424,12 +421,16 @@ a:active {
 .pre-header {
 	font-size:1.0rem;
 	background-color:#ffffff;
-	height:1.5rem; 
+	height:2rem;
+	margin-top: 0.5rem; 
 }
+
 .pre-header .fecha, .pre-header .tiempo {float:left; display: block;}
 .pre-header .fecha {margin-left: 1rem;}
 .pre-header .tiempo {padding-left: 60rem;}
 .pre-header .social {float:right; display: block;}
+
+.social a {width:2rem; margin-left: 1rem;}
 
 .site-header  {
 	background:#333333;
@@ -605,6 +606,7 @@ a:active {
 
 .detapa .entry-title {
 	margin:0; 
+	margin-top: 4rem;
 	padding: 0;
 	position: absolute;
 	overflow: hidden;
@@ -615,7 +617,7 @@ a:active {
 	color: #ffffff;
 	font-size: 1.8rem;
 	font-weight: normal;
-	letter-spacing: 0.1rem;
+	letter-spacing: normal;
 	line-height: 2rem;
 	width: 30rem;
 	height:11.7rem;
@@ -635,57 +637,117 @@ a:active {
 	margin-top: 1rem;
 }
 
-/* De tapa sin foto*/
+/* De tapa, pares*/
+
+.pares {width:34.2rem; float:left;margin:0;}
 
 
-.pares {
+.oddpost, .evenpost {
 	float: left;
-	width:32rem;
-	margin-left: 2.13rem;
-	height:10.4rem;
-	overflow: hidden; 
+	width:32.3rem;
+	margin-left: 2rem;
+	height:12.9rem;
+	overflow: hidden;
 }
 
-.pares .entry-title {
+.oddpost {margin-bottom: 1.8rem;}
+
+.oddpost .entry-title, .evenpost .entry-title {
 	margin:0; 
 	padding: 0;
 	position: absolute;
 	overflow: hidden;
 }
 
-.pares a {
+.oddpost a, .evenpost a {
 	font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; 
 	color: #ffffff;
 	font-size: 1.8rem;
 	font-weight: normal;
-	letter-spacing: 0.1rem;
+	letter-spacing: normal;
 	line-height: 2rem;
-	width: 29.8rem;
-	height:10rem;
+	width: 30.1rem;
+	height:11rem;
 	padding-left: 1rem;
 	padding-right: 1rem;
 	padding-top: 0.6rem;
+	padding-bottom: 1.5rem;
 	display: block;
+	border: 0.1rem solid #AAA380;
 }
 
+.oddpost  a {background-color:#333333; color: #ffffff;}
 
+.evenpost a {background-color:#ffffff; color: #333333; }
 
-.pares h1 span {
+.oddpost a:hover, .evenpost a:hover {color: #148ac3;}
+
+.oddpost h1 span, .evenpost h1 span {
 	font-size: 1.2rem;
 	display: block;
 	line-height: 1.5rem;
 	margin-top: 1rem;
 }
 
-.oddpost .pares a {background-color:#333333; color: #ffffff; border: 0.2rem solid #333333;}
-.oddpost .pares {margin-bottom: 2rem;}
+/* =Twitter
+----------------------------------------------- */
 
-.evenpost .pares a {background-color:#ffffff; color: #333333; border: 0.2rem solid #AAA380;}
+.widget_twitter-profile-tracker {
+	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-size: 1.2rem;
+	line-height: normal;
+	color: #333333;
+}
 
-.oddpost .pares a:hover, .evenpost .pares a:hover {color: #148ac3;}
+.widget_twitter-profile-tracker .widget-title {
+	display: block;
+	height: 4rem;
+	padding-top: 1.5rem;
+	background: #148AC3 url(img/twitter-widget.png) no-repeat;
+	background-position: 5% center;
+	font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-size: 1.8rem;
+	color: #ffffff; 
+	padding-left: 5rem;
+}
+
+.widget_twitter-profile-tracker .tweets {
+	list-style-type: none;
+	margin: 0 1.5rem;
+}
+
+.widget_twitter-profile-tracker .avatar {
+	display: none;
+}
+
+.widget_twitter-profile-tracker .clearleft {
+	margin: 1rem 0;
+	background-color: #148AC3;
+	height: 0.1rem;
+	width: 100%;
+	display: block;
+}
+
+.widget_twitter-profile-tracker a {
+	color: #333333;
+	font-weight: bold;
+}
+
+.widget_twitter-profile-tracker a:hover {
+	color: #148AC3;
+}
 
 
+/* =Banners
+----------------------------------------------- */
 
+.banner {
+	width: 102.4rem;
+	float:left;
+	text-align: center;
+	margin: 2rem 0 0;
+
+}
 
 
 

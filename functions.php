@@ -59,7 +59,7 @@ add_action( 'after_setup_theme', 'diariorumbosur_setup' );
  */
 function diariorumbosur_widgets_init() {
     register_sidebar( array(
-        'name' => __( 'Primary Widget Area', 'diariorumbosur' ),
+        'name' => __( 'Barra lateral', 'diariorumbosur' ),
         'id' => 'sidebar-1',
         'before_widget' => '<aside id="%1$s" class="widget %2$s">',
         'after_widget' => '</aside>',
@@ -68,8 +68,17 @@ function diariorumbosur_widgets_init() {
     ) );
  
     register_sidebar( array(
-        'name' => __( 'Secondary Widget Area', 'diariorumbosur' ),
+        'name' => __( 'Banner 1', 'diariorumbosur' ),
         'id' => 'sidebar-2',
+        'before_widget' => '<aside id="%1$s" class="widget %2$s">',
+        'after_widget' => '</aside>',
+        'before_title' => '<h1 class="widget-title">',
+        'after_title' => '</h1>',
+    ) );
+
+    register_sidebar( array(
+        'name' => __( 'Banner 2', 'diariorumbosur' ),
+        'id' => 'sidebar-3',
         'before_widget' => '<aside id="%1$s" class="widget %2$s">',
         'after_widget' => '</aside>',
         'before_title' => '<h1 class="widget-title">',
