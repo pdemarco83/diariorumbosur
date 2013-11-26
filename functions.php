@@ -12,7 +12,7 @@
  * @since diariorumbosur 1.0
  */
 if ( ! isset( $content_width ) )
-    $content_width = 654; /* pixels */
+    $content_width = 1024; /* pixels */
 
 if ( ! function_exists( 'diariorumbosur_setup' ) ):
 /**
@@ -48,6 +48,8 @@ function diariorumbosur_setup() {
     register_nav_menus( array(
         'primary' => __( 'Primary Menu', 'diariorumbosur' ),
     ) );
+
+
 }
 endif; // diariorumbosur_setup
 add_action( 'after_setup_theme', 'diariorumbosur_setup' );
@@ -127,3 +129,9 @@ function portada_init() {
     );
 }
 add_action( 'init', 'portada_init' );
+
+function home_page_menu_args( $args ) {
+$args['show_home'] = true;
+return $args;
+}
+add_filter( 'wp_page_menu_args', 'home_page_menu_args' );

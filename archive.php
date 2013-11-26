@@ -19,7 +19,7 @@ get_header(); ?>
     <h1 class="page-title">
         <?php
             if ( is_category() ) {
-                printf( __( 'Category Archives: %s', 'diariorumbosur' ), '<span>' . single_cat_title( '', false ) . '</span>' );
+                printf( __( '%s', 'diariorumbosur' ), '<span>' . single_cat_title( '', false ) . '</span>' );
  
             } elseif ( is_tag() ) {
                 printf( __( 'Tag Archives: %s', 'diariorumbosur' ), '<span>' . single_tag_title( '', false ) . '</span>' );

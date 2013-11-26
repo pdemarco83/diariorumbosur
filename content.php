@@ -8,11 +8,10 @@
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
     <header class="entry-header">
         <h1 class="entry-title"><a href="<?php the_permalink(); ?>" title="<?php echo esc_attr( sprintf( __( 'Permalink to %s', 'diariorumbosur' ), the_title_attribute( 'echo=0' ) ) ); ?>" rel="bookmark"><?php the_title(); ?></a></h1>
+        <?php the_excerpt(); ?>
  
         <?php if ( 'post' == get_post_type() ) : ?>
-        <div class="entry-meta">
-            <?php diariorumbosur_posted_on(); ?>
-        </div><!-- .entry-meta -->
+
         <?php endif; ?>
     </header><!-- .entry-header -->
  
@@ -34,9 +33,7 @@
                 $categories_list = get_the_category_list( __( ', ', 'diariorumbosur' ) );
                 if ( $categories_list && diariorumbosur_categorized_blog() ) :
             ?>
-            <span class="cat-links">
-                <?php printf( __( 'Posted in %1$s', 'diariorumbosur' ), $categories_list ); ?>
-            </span>
+
             <?php endif; // End if categories ?>
  
             <?php
@@ -56,6 +53,6 @@
         <span class="comments-link"><?php comments_popup_link( __( 'Leave a comment', 'diariorumbosur' ), __( '1 Comment', 'diariorumbosur' ), __( '% Comments', 'diariorumbosur' ) ); ?></span>
         <?php endif; ?>
  
-        <?php edit_post_link( __( 'Edit', 'diariorumbosur' ), '<span class="sep"> | </span><span class="edit-link">', '</span>' ); ?>
+        <?php edit_post_link( __( 'Edit', 'diariorumbosur' ), '<span class="edit-link">', '</span>' ); ?>
     </footer><!-- .entry-meta -->
 </article><!-- #post-<?php the_ID(); ?> -->

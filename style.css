@@ -413,7 +413,23 @@ a:active {
 .site-footer {
 	clear: both;
 	width: 100%;
+	height: 5rem;
+	padding-top: 5rem;
+	text-align: center;
+	font-size: 1.2rem;
+	background: #ffffff; /* Old browsers */
+	background: -moz-linear-gradient(top, #ffffff 2%, #d9dadb 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(2%,#ffffff), color-stop(100%,#d9dadb)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #ffffff 2%,#d9dadb 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #ffffff 2%,#d9dadb 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top, #ffffff 2%,#d9dadb 100%); /* IE10+ */
+	background: linear-gradient(to bottom, #ffffff 2%,#d9dadb 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#d9dadb',GradientType=0 ); /* IE6-9 */
 }
+
+.site-footer a {color:#333333;}
+.site-footer a:hover {color:#148ac3;}
+
 
 /* =Site Header
 ----------------------------------------------- */
@@ -565,15 +581,15 @@ a:active {
 .destacadas a {
 	font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; 
 	color: #ffffff;
-	font-size: 1.5rem;
+	font-size: 2.5rem;
 	font-weight: normal;
 	width: 30rem;
 	height:6.2rem;
 	padding-left: 1rem;
 	padding-right: 1rem;
-	padding-top: 0.3rem;
+	padding-top: 0.7rem;
 	display: block;
-	line-height: 2rem;
+	line-height: 2.5rem;
 	background-color:#333333;
 }
 

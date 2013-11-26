@@ -13,10 +13,7 @@
  
 <footer id="colophon" class="site-footer" role="contentinfo">
     <div class="site-info">
-        <?php do_action( 'diariorumbosur_credits' ); ?>
-        <a href="http://wordpress.org/" title="<?php esc_attr_e( 'A Semantic Personal Publishing Platform', 'diariorumbosur' ); ?>" rel="generator"><?php printf( __( 'Proudly powered by %s', 'diariorumbosur' ), 'WordPress' ); ?></a>
-        <span class="sep"> | </span>
-        <?php printf( __( 'Theme: %1$s by %2$s.', 'diariorumbosur' ), 'diariorumbosur', '<a href="http://themediariorumbosurr.com/" rel="designer">Themediariorumbosurr</a>' ); ?>
+    	 © 2013 Diario Rumbo Sur | <a href="/">Términos y Condiciones</a> | <a href="mailto:contactocomercial@diariorumbosur.com.ar">Contacto Comercial</a> | <a href="mailto:contactolectores@diariorumbosur.com.ar">Contacto Lectores</a>
     </div><!-- .site-info -->
 </footer><!-- #colophon .site-footer -->
 </div><!-- #page .hfeed .site -->

@@ -57,7 +57,7 @@ echo ' | ' . sprintf( __( 'Page %s', 'diariorumbosur' ), max( $paged, $page ) );
 		<div class="social">
 			<a href="http://www.facebook.com/diariorumbosur" target="_blank"><img src="<?php echo get_template_directory_uri(); ?>/img/facebook.jpg"></a>
 			<a href="http://www.twitter.com/diariorumbosur" target="_blank"><img src="<?php echo get_template_directory_uri(); ?>/img/twitter.jpg"></a>
-			<a href="/" target="_blank"><img src="<?php echo get_template_directory_uri(); ?>/img/mail.jpg"></a>
+			<a href="mailto:contactolectores@diariorumbosur.com.ar" target="_blank"><img src="<?php echo get_template_directory_uri(); ?>/img/mail.jpg"></a>
 
 		</div>	
 	</div>
@@ -75,5 +75,5 @@ echo ' | ' . sprintf( __( 'Page %s', 'diariorumbosur' ), max( $paged, $page ) );
  			</nav><!-- .site-navigation .main-navigation -->
 		</div>				
 	</header>
-	<div class="ultimo-momento">LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO </div>
+	<!--<div class="ultimo-momento">LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO </div>-->
 	<div id="main" class="site-main">

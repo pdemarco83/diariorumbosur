@@ -25,7 +25,7 @@ $args = array(
         array(
             'taxonomy' => 'Portada',
             'field' => 'slug',
-            'terms' => 'uno'
+            'terms' => 'destacada'
         )
     )
 );
@@ -67,7 +67,7 @@ $args = array(
         array(
             'taxonomy' => 'Portada',
             'field' => 'slug',
-            'terms' => 'tapa'
+            'terms' => '1-foto'
         )
     )
 );
@@ -97,7 +97,7 @@ $args = array(
         array(
             'taxonomy' => 'Portada',
             'field' => 'slug',
-            'terms' => 'par-1'
+            'terms' => '1-par'
         )
     )
 );
@@ -138,7 +138,7 @@ $args = array(
         array(
             'taxonomy' => 'Portada',
             'field' => 'slug',
-            'terms' => 'par-1'
+            'terms' => '2-par'
         )
     )
 );
@@ -172,7 +172,7 @@ $args = array(
         array(
             'taxonomy' => 'Portada',
             'field' => 'slug',
-            'terms' => 'tapa'
+            'terms' => '2-foto'
         )
     )
 );
@@ -195,7 +195,7 @@ wp_reset_postdata();
 
     <div id="content" class="site-content" role="main">
  
-<?php // con foto, primera de la izquierda
+<?php // tercera con foto 
 
 $args = array(
     'posts_per_page' => 1,
@@ -204,7 +204,7 @@ $args = array(
         array(
             'taxonomy' => 'Portada',
             'field' => 'slug',
-            'terms' => 'tapa'
+            'terms' => '3-foto'
         )
     )
 );
@@ -225,7 +225,7 @@ wp_reset_postdata();
 
 
         <div class="pares">
-<?php // primer bloque de pares
+<?php // tercer bloque de pares
 
 $args = array(
     'posts_per_page' => 2,
@@ -234,7 +234,7 @@ $args = array(
         array(
             'taxonomy' => 'Portada',
             'field' => 'slug',
-            'terms' => 'par-1'
+            'terms' => '3-par'
         )
     )
 );
