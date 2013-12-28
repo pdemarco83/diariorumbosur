@@ -86,6 +86,11 @@ function diariorumbosur_widgets_init() {
         'before_title' => '<h1 class="widget-title">',
         'after_title' => '</h1>',
     ) );
+
+    register_sidebar( array(
+        'name' => __( 'Tiempo', 'diariorumbosur' ),
+        'id' => 'sidebar-4',
+    ) );
 }
 add_action( 'widgets_init', 'diariorumbosur_widgets_init' );
 
@@ -94,9 +99,7 @@ add_action( 'widgets_init', 'diariorumbosur_widgets_init' );
  */
 function diariorumbosur_scripts() {
     wp_enqueue_style( 'style', get_stylesheet_uri() );
- 
-    wp_enqueue_script( 'navigation', get_template_directory_uri() . '/js/navigation.js', array(), '20120206', true );
- 
+  
  }
 add_action( 'wp_enqueue_scripts', 'diariorumbosur_scripts' );
 

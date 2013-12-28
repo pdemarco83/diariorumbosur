@@ -53,8 +53,11 @@ echo ' | ' . sprintf( __( 'Page %s', 'diariorumbosur' ), max( $paged, $page ) );
 		<div class="pre-header">
 			<div class="fecha"><?php setlocale(LC_TIME, 'es_ES');    
 				echo ucwords (strftime('%A'));
-				echo strftime (' %d de %B de %Y'); ?></div>
-			<div class="tiempo"><!--Buenos Aires, Argentina--></div>			
+				echo strftime (' %d de %B de %Y'); ?>
+			</div>
+			<div class="tiempo">
+    			<?php dynamic_sidebar( 'sidebar-4' ); ?>
+			</div>			
 			<div class="social">
 				<a href="http://www.facebook.com/diariorumbosur" target="_blank"><img src="<?php echo get_template_directory_uri(); ?>/img/facebook.png"></a>
 				<a href="http://www.twitter.com/diariorumbosur" target="_blank"><img src="<?php echo get_template_directory_uri(); ?>/img/twitter.png"></a>

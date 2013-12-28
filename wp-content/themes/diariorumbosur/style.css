@@ -444,14 +444,40 @@ a:active {
 
 .pre-header .fecha, .pre-header .tiempo {float:left; display: block;}
 .pre-header .fecha {margin-left: 1rem;}
-.pre-header .tiempo {padding-left: 60rem;}
-.pre-header .social {float:right; display: block;}
+.pre-header .tiempo {
+	margin-left: 48rem;
+	width: 25rem;
+	border-right: solid 0.1rem #ffffff;
+	padding-right: 1rem;
+	line-height: 1rem;
+	text-align: right;
+}
+
+	.pre-header .tiempo .GG_func_widget_weather_and_weather_forecast {
+		height: 2rem !important;
+	}
+
+	.pre-header .tiempo .GG_func_widget_weather_and_weather_forecast img{
+		margin-top: -0.5rem !important;
+		margin-left: 1rem;
+	}
+	
+	.pre-header .tiempo li {
+		list-style: none;
+	}
+
+.pre-header .social {
+	float:right;
+	display: block;
+	padding-top: 0.3rem;
+	padding-right: 2rem;
+}
 
 .social a {width:2rem; margin-left: 1rem;}
 
 .site-header  {
 	background:#333333;
-	height:8.5rem; 
+	height:8.5rem;
 }
 .logo {
 	width:20rem;
