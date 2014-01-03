@@ -91,6 +91,11 @@ function diariorumbosur_widgets_init() {
         'name' => __( 'Tiempo', 'diariorumbosur' ),
         'id' => 'sidebar-4',
     ) );
+
+    register_sidebar( array(
+        'name' => __( 'Alerta', 'diariorumbosur' ),
+        'id' => 'sidebar-5',
+    ) );
 }
 add_action( 'widgets_init', 'diariorumbosur_widgets_init' );
 
@@ -138,3 +143,5 @@ $args['show_home'] = true;
 return $args;
 }
 add_filter( 'wp_page_menu_args', 'home_page_menu_args' );
+
+

@@ -14,6 +14,9 @@
  
 get_header(); ?>
 
+<div class="alerta">
+    <?php dynamic_sidebar( 'sidebar-5' ); ?>
+</div>  
 
 <div id="top" class="content-area">
     <div id="top-content" class="site-content" role="main">    

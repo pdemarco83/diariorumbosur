@@ -383,7 +383,7 @@ a:active {
 	margin:0;
 	padding:0;
 	width: 102.4rem;
-	margin-top: 2rem;
+	/*margin-top: 2rem;*/
 }
 
 #primary {
@@ -437,7 +437,7 @@ a:active {
 .pre-header {
 	font-size:1.0rem;
 	background-color:#333333;
-	height:2rem;
+	height:2.5rem;
 	padding-top: 0.5rem; 
 	color:#ffffff;
 }
@@ -559,18 +559,6 @@ a:active {
 .main-small-navigation .menu {
 	display: none;
 }
-
-/* =Último momento
------------------------------------------------ */
-
-.ultimo-momento {
-	display:block;
-	color:#148ac3;
-	font-size: 1.6rem;
-	height: 2.1rem;
-	overflow: hidden;
-}
-
 
 /* =Portada
 ----------------------------------------------- */
@@ -793,4 +781,45 @@ a:active {
 }
 
 
+/* =Alerta
+----------------------------------------------- */
 
+.alerta {
+	display:block;
+	height: auto;
+	overflow: hidden;
+	color: #ffffff;
+}
+
+.alerta li {list-style: none; height: auto;}
+
+.alerta div {padding: 0 !important; height: 2.5rem;}
+
+.alerta marquee {color:#148ac3;	font-size: 1.6rem;}
+
+
+
+/* =Cotización dolar
+----------------------------------------------- */
+
+.cotizacion {
+	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-size: 1.7rem;
+	line-height: normal;
+	color: #333333;
+}
+
+.cotizacion p {padding-left: 1.5rem;}
+
+
+.cotizacion .widget-title {
+	display: block;
+	height: 4rem;
+	padding-top: 1.5rem;
+	padding-left: 1.5rem;
+	background: #148AC3;
+	background-position: 5% center;
+	font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-size: 1.8rem;
+	color: #ffffff; 
+}
