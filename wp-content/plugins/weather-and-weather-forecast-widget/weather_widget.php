@@ -1091,9 +1091,9 @@ function GG_func_cutout($data, $start, $end) {
 
 function GG_func_widget_format($term_in,$term_out,$f_size_s,$f_size_m,$f_size_l,$i_size_s,$i_size_m,$i_size_l,$background_color,$font_family, $font_color, $images,$wun_licence_code,$term,$opt_hide_feels_like){
     $check=$term_in;
-    if ($check=="auto_location"){
+    /*if ($check=="auto_location"){
       $term_out ="%auto_loc%";
-    } 
+    } */
 
 ///////////// modificado para diariorumbosur...
 

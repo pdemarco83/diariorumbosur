@@ -72,13 +72,12 @@ echo ' | ' . sprintf( __( 'Page %s', 'diariorumbosur' ), max( $paged, $page ) );
             	</a>
 			</div>
 			<nav role="navigation" class="site-navigation main-navigation">
-				<h1 class="assistive-text"><?php _e( 'Menu', 'diariorumbosur' ); ?></h1>
-				<div class="assistive-text skip-link"><a href="#content" title="<?php esc_attr_e( 'Skip to content', '_s' ); ?>"><?php _e( 'Skip to content', 'diariorumbosur' ); ?></a></div>
+				
 				<?php wp_nav_menu( array( 'theme_location' => 'primary' ) ); ?>
  			</nav><!-- .site-navigation .main-navigation -->
 		</div>			
 	</header>
 
 	</div>
-	<!--<div class="ultimo-momento">LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO &nbsp LLUVIA TORRENCIAL EN CABALLITO </div>-->
+
 	<div id="main" class="site-main">
