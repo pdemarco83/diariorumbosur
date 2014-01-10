@@ -20,10 +20,12 @@
         <?php the_excerpt(); ?>
     </div><!-- .entry-summary -->
     <?php else : ?>
-    <div class="entry-content">
+   <!--<div class="entry-content">
+        <?php the_excerpt(); ?>
         <?php the_content( __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'diariorumbosur' ) ); ?>
         <?php wp_link_pages( array( 'before' => '<div class="page-links">' . __( 'Pages:', 'diariorumbosur' ), 'after' => '</div>' ) ); ?>
-    </div><!-- .entry-content -->
+    </div>-->
+    <!-- .entry-content -->
     <?php endif; ?>
  
     <footer class="entry-meta">
@@ -41,10 +43,10 @@
                 $tags_list = get_the_tag_list( '', __( ', ', 'diariorumbosur' ) );
                 if ( $tags_list ) :
             ?>
-            <span class="sep"> | </span>
-            <span class="tag-links">
+            <!--<span class="sep"> | </span>-->
+            <!--<span class="tag-links">
                 <?php printf( __( 'Tagged %1$s', 'diariorumbosur' ), $tags_list ); ?>
-            </span>
+            </span>-->
             <?php endif; // End if $tags_list ?>
         <?php endif; // End if 'post' == get_post_type() ?>
  
@@ -53,6 +55,6 @@
         <span class="comments-link"><?php comments_popup_link( __( 'Leave a comment', 'diariorumbosur' ), __( '1 Comment', 'diariorumbosur' ), __( '% Comments', 'diariorumbosur' ) ); ?></span>
         <?php endif; ?>
  
-        <?php edit_post_link( __( 'Edit', 'diariorumbosur' ), '<span class="edit-link">', '</span>' ); ?>
+        <!--<?php edit_post_link( __( 'Edit', 'diariorumbosur' ), '<span class="edit-link">', '</span>' ); ?>-->
     </footer><!-- .entry-meta -->
 </article><!-- #post-<?php the_ID(); ?> -->

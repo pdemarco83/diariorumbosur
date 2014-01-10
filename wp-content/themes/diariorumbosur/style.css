@@ -359,8 +359,17 @@ a:active {
 .comment-meta,
 .comment-author,
 #reply-title {
-	font-family: Georgia, 'Times New Roman', serif;
+	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
+
+.page-title {font-size:5rem;font-weight: bold; color:#148ac3;margin-top:0; padding-top:0; margin-bottom: 2rem; border-bottom: solid .1rem #333333;}
+.entry-header {margin-bottom: 1rem;}
+	.entry-header p {font-size: 1.5rem;}
+	.entry-header a {color:#333333;}
+	.entry-header a:hover {color:#148ac3;}
+.entry-title {font-size: 3rem; font-weight: bold; line-height: normal; padding: 0; margin: 0;}
+.entry-meta {font-size: 1.2rem;}
+.entry-content {font-size: 1.4rem;}
 
 /* =Structure
 ----------------------------------------------- */
@@ -586,8 +595,8 @@ a:active {
 }
 
 	.dest {margin-top: 18rem; margin-left: 24.5rem;}
-	.tap {margin-top: 4rem; margin-left: 24.5rem; z-index: 10000;}
-	.par {margin-top: 9.5rem; margin-left: 24.7rem; z-index: 10000;}
+	.tap {margin-top: 25.3rem; margin-left: 24.5rem; z-index: 10000;}
+	.par {margin-top: 10.5rem; margin-left: 24.7rem; z-index: 10000;}
 
 
 /* Destacadas*/
@@ -694,6 +703,8 @@ a:active {
 	display: block;
 	line-height: 1.5rem;
 	margin-top: 1rem;
+	overflow: hidden;
+	height: 3rem;
 }
 
 
@@ -834,6 +845,7 @@ a:active {
 		{
 		color: #FFFFFF;
 		font-size: 1.6rem;
+		font-weight: bold;
 		background-color: #148ac3;
 		width: 100.2rem;
 		margin-left: 2.1rem;
@@ -875,3 +887,4 @@ a:active {
 	height: 24rem !important;
 	margin-bottom: 0.1rem;
 }
+

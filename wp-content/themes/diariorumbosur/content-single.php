@@ -10,7 +10,7 @@
         <h1 class="entry-title"><?php the_title(); ?></h1>
  
         <div class="entry-meta">
-            <?php the_date('d-m-Y', '<h2>', '</h2>'); ?>
+            <?php the_date('l, j \d\e F \d\e Y'); ?>
         </div><!-- .entry-meta -->
     </header><!-- .entry-header -->
  
