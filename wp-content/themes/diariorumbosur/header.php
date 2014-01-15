@@ -51,9 +51,15 @@ echo ' | ' . sprintf( __( 'Page %s', 'diariorumbosur' ), max( $paged, $page ) );
 <div id="page" class="hfeed site">
 	<header id="masthead" class="site-header" role="banner">
 		<div class="pre-header">
-			<div class="fecha"><?php setlocale(LC_TIME, 'es_ES');    
+			<div class="fecha"><?php /* setlocale(LC_TIME, 'es_ES');    
 				echo ucwords (strftime('%A'));
-				echo strftime (' %d de %B de %Y'); ?>
+				echo strftime (' %d de %B de %Y'); */ ?>
+				<?php 
+					setlocale(LC_TIME, 'es_ES');
+					echo ucwords ($date_string = utf8_encode(strftime('%A, ')));
+					echo $date_string = utf8_encode(strftime('%d de %B de %Y'));
+				?>
+
 			</div>
 			<div class="tiempo">
     			<?php dynamic_sidebar( 'sidebar-4' ); ?>

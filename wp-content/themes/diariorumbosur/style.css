@@ -380,8 +380,14 @@ a:active {
  {
     margin: 0 auto;
 	width: 1024px;
+}
+
+#main,
+.pre-header
+{
 	overflow: hidden;
 }
+
 
 .header {height: 5.5rem;}
 
@@ -531,12 +537,11 @@ a:active {
     text-decoration: none;
 }
 .main-navigation ul ul {
-	background: #e9e0d1;
-	border: 1px solid rgba( 0, 0, 0, 0.1 );
+	background: #333333;
+	/*border: 1px solid rgba( 0, 0, 0, 0.1 );*/
 	display: none;
 	float: left;
 	position: absolute;
-		top: 1.2em;
 		left: 0;
 	z-index: 99999;
 }
@@ -545,8 +550,8 @@ a:active {
 	top: 0;
 }
 .main-navigation ul ul a {
-	padding: 0 1.5em;
-	width: 200px;
+	width: 10rem;
+	height: 1rem;
 }
 .main-navigation ul ul li {
 }
@@ -594,7 +599,7 @@ a:active {
 	box-shadow:         1px 1px 3px 0px rgba(50, 50, 50, 0.75);
 }
 
-	.dest {margin-top: 18rem; margin-left: 24.5rem;}
+	.dest {margin-top: 20rem; margin-left: 24.5rem;}
 	.tap {margin-top: 25.3rem; margin-left: 24.5rem; z-index: 10000;}
 	.par {margin-top: 10.5rem; margin-left: 24.7rem; z-index: 10000;}
 
@@ -877,6 +882,7 @@ a:active {
 	font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
 	font-size: 1.8rem;
 	color: #ffffff; 
+	margin-top: 0px;
 }
 
 

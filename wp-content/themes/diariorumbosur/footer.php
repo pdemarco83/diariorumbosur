@@ -13,7 +13,7 @@
  
 <footer id="colophon" class="site-footer" role="contentinfo">
     <div class="site-info">
-    	 © 2013 Diario Rumbo Sur | <a href="/">Términos y Condiciones</a> | <a href="mailto:contactocomercial@diariorumbosur.com.ar">Contacto Comercial</a> | <a href="mailto:contactolectores@diariorumbosur.com.ar">Contacto Lectores</a>
+    	 © 2013 Diario Rumbo Sur | <a href="terminos-y-condiciones">Términos y Condiciones</a> | <a href="mailto:contactocomercial@diariorumbosur.com.ar">Contacto Comercial</a> | <a href="mailto:contactolectores@diariorumbosur.com.ar">Contacto Lectores</a>
     </div><!-- .site-info -->
 </footer><!-- #colophon .site-footer -->
 </div><!-- #page .hfeed .site -->
