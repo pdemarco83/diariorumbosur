@@ -86,6 +86,7 @@ textarea {
 
 body {
 	background: #ffffff;
+	min-width:102.4rem;
 }
 
 /* Headings */
@@ -362,12 +363,12 @@ a:active {
 	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-.page-title {font-size:5rem;font-weight: bold; color:#148ac3;margin-top:0; padding-top:0; margin-bottom: 2rem; border-bottom: solid .1rem #333333;}
+.page-title {font-size:3rem;font-weight: bold; color:#148ac3;margin-top:0; padding-top:0; margin-bottom: 2rem; border-bottom: solid .1rem #333333;}
 .entry-header {margin-bottom: 1rem;}
 	.entry-header p {font-size: 1.5rem;}
 	.entry-header a {color:#333333;}
 	.entry-header a:hover {color:#148ac3;}
-.entry-title {font-size: 3rem; font-weight: bold; line-height: normal; padding: 0; margin: 0;}
+.entry-title {font-size: 2rem; font-weight: bold; line-height: normal; padding: 0; margin: 0;}
 .entry-meta {font-size: 1.2rem;}
 .entry-content {font-size: 1.4rem;}
 
@@ -550,7 +551,7 @@ a:active {
 	top: 0;
 }
 .main-navigation ul ul a {
-	width: 10rem;
+	width: 12rem;
 	height: 1rem;
 }
 .main-navigation ul ul li {
@@ -637,7 +638,7 @@ a:active {
 .destacadas a {
 	font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; 
 	color: #ffffff;
-	font-size: 2.5rem;
+	font-size: 2rem;
 	font-weight: normal;
 	width: 30rem;
 	height:6.2rem;
