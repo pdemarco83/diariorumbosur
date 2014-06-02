@@ -18,7 +18,7 @@
 	    		<div class="bloque">
 		    		<?php the_title(); ?>
 		    		<span>
-		                <?php echo substr(get_the_excerpt(), 0,300); ?>
+		    			<?php if($post->post_excerpt) the_excerpt(); ?>
 					</span>
 				</div>	
 	        </a>

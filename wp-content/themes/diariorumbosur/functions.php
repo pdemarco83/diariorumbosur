@@ -111,7 +111,23 @@ add_action( 'wp_enqueue_scripts', 'diariorumbosur_scripts' );
 
 if ( function_exists( 'add_theme_support' ) ) { 
 add_theme_support( 'post-thumbnails' );
+//set_post_thumbnail_size( 1000, 1000, true ); // default Post Thumbnail dimensions (cropped)
+// additional image sizes
+// delete the next line if you do not need additional image sizes
+//add_image_size( 'moda-thumb', 300, 9999 ); //300 pixels wide (and unlimited height)
 }
+
+/* Cropear imágenes */
+
+if(!get_option("medium_crop"))
+    add_option("medium_crop", "1");
+else
+    update_option("medium_crop", "1");
+
+if(!get_option("large_crop"))
+    add_option("large_crop", "1");
+else
+    update_option("large_crop", "1");    
 
 
 // Creating the widget COTIZACIÓN
@@ -252,5 +268,6 @@ function add_custom_taxonomies() {
     ));
 }
 add_action( 'init', 'add_custom_taxonomies', 0 );
+
 
 ?>
