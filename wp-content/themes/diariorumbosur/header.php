@@ -55,18 +55,19 @@ echo ' | ' . sprintf( __( 'Page %s', 'diariorumbosur' ), max( $paged, $page ) );
 			<div class="fecha"><?php /* setlocale(LC_TIME, 'es_ES');    
 				echo ucwords (strftime('%A'));
 				echo strftime (' %d de %B de %Y'); */ ?>
-				<?php 
-					setlocale(LC_TIME, 'es_ES');
-					echo ucwords ($date_string = utf8_encode(strftime('%A, ')));
-					echo $date_string = utf8_encode(strftime('%d de %B de %Y'));
-				?>
+				<?php
+
+echo  date_i18n( 'l, d \d\e F \d\e Y', current_time( 'timestamp', 0 ) );
+
+?>
+
 
 			</div>
 			<div class="tiempo">
     			<?php dynamic_sidebar( 'sidebar-4' ); ?>
 			</div>			
 			<div class="social">
-				<a href="http://www.facebook.com/diariorumbosur" target="_blank"><img src="<?php echo get_template_directory_uri(); ?>/img/facebook.png"></a>
+				<a href="https://www.facebook.com/pages/Diario-RumboSur/315138277103?fref=ts" target="_blank"><img src="<?php echo get_template_directory_uri(); ?>/img/facebook.png"></a>
 				<a href="http://www.twitter.com/diariorumbosur" target="_blank"><img src="<?php echo get_template_directory_uri(); ?>/img/twitter.png"></a>
 				<a href="mailto:contactolectores@diariorumbosur.com.ar" target="_blank"><img src="<?php echo get_template_directory_uri(); ?>/img/email.png"></a>
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ======================================================================
  * LICENSE: This file is subject to the terms and conditions defined in *
@@ -16,27 +17,35 @@
 class aam_Control_Object_Post extends aam_Control_Object {
 
     /**
-     *
+     * Object Identifier
      */
     const UID = 'post';
 
     /**
+     * Object Action: COMMENT
      *
+     * Control access to commenting ability
      */
     const ACTION_COMMENT = 'comment';
 
     /**
+     * Object Action: READ
      *
+     * Either Object can be read by user or not
      */
     const ACTION_READ = 'read';
-    
+
     /**
-     * 
+     * Object Action: EXCLUDE
+     *
+     * If object is a part of frontend menu either exclude it from menu or not
      */
     const ACTION_EXCLUDE = 'exclude';
 
     /**
+     * Object Action: TRASH
      *
+     * Manage access to object trash ability
      */
     const ACTION_TRASH = 'trash';
 
@@ -63,47 +72,74 @@ class aam_Control_Object_Post extends aam_Control_Object {
     private $_option = array();
 
     /**
+     * Indicator that settings where inherited
      *
-     * @param type $params
+     * @var boolean
+     *
+     * @access private
      */
-    public function save($params = null) {
-        if (is_array($params)) {
-            update_post_meta($this->getPost()->ID, $this->getOptionName(), $params);
+    private $_inherited = false;
+
+    /**
+     * Init Post Object
+     *
+     * @param WP_Post|Int $object
+     *
+     * @return void
+     *
+     * @access public
+     */
+    public function init($object) {
+        //make sure that we are dealing with WP_Post object
+        if ($object instanceof WP_Post){
+            $this->setPost($object);
+        } elseif (intval($object)) {
+            $this->setPost(get_post($object));
+        }
+
+        if ($this->getPost()){
+            $this->read();
         }
     }
 
     /**
+     * Read the Post AAM Metadata
      *
-     * @param type $area
-     * @return type
+     * Get all settings related to specified post
+     *
+     * @return void
+     *
+     * @access public
      */
-    public function getAccessList($area) {
-        if ($area == 'frontend') {
-            $response = array(
-                self::ACTION_READ, self::ACTION_EXCLUDE, self::ACTION_COMMENT
+    public function read() {
+        $option = get_post_meta($this->getPost()->ID, $this->getOptionName(), true);
+        //try to inherit it from parent category
+        if (empty($option)
+                && (aam_Core_ConfigPress::getParam('aam.post.inherit', 'true') == 'true')) {
+            $terms = $this->retrievePostTerms();
+            //use only first term for inheritance
+            $term_id = array_shift($terms);
+            //try to get any parent access
+            $option = $this->inheritAccess($term_id);
+        }
+        //even if parent category is empty, try to read the parent subject
+        if (empty($option)){
+            $option = $this->getSubject()->readParentSubject(
+                    self::UID, $this->getPost()->ID
             );
-        } elseif ($area == 'backend') {
-            $response = array(
-                self::ACTION_TRASH, self::ACTION_DELETE, self::ACTION_EDIT
-            );
-        } else {
-            $response = array();
         }
 
-        return apply_filters('aam_post_access_list', $response, $area);
+        $this->setOption(
+                apply_filters('aam_post_access_option', $option, $this)
+        );
     }
 
     /**
-     *
-     * @return type
-     */
-    public function getUID() {
-        return self::UID;
-    }
-
-    /**
-     *
-     * @return type
+     * Generate option name
+     * 
+     * @return string
+     * 
+     * @access protected
      */
     protected function getOptionName() {
         $subject = $this->getSubject();
@@ -115,39 +151,69 @@ class aam_Control_Object_Post extends aam_Control_Object {
     }
 
     /**
-     *
-     * @param type $object
+     * Inherit access from parent term
+     * 
+     * Go throught the hierarchical branch of terms and retrieve access from the 
+     * first parent term that has access defined.
+     * 
+     * @param int $term_id
+     * 
+     * @return array
+     * 
+     * @access private
      */
-    public function init($object) {
-        //make sure that we are dealing with WP_Post object
-        if ($object instanceof WP_Post){
-            $this->setPost($object);
-        } elseif (intval($object)) {
-            $this->setPost(get_post($object));
+    private function inheritAccess($term_id) {
+        $term = new aam_Control_Object_Term($this->getSubject(), $term_id);
+        $access = $term->getOption();
+        if (isset($access['post']) && $access['post']) {
+            $result = array('post' => $access['post']);
+            $this->setInherited(true);
+        } elseif (is_object($term->getTerm()) && $term->getTerm()->parent) {
+            $result = $this->inheritAccess($term->getTerm()->parent);
+        } else {
+            $result = array();
         }
-        //read options
-        if ($this->getPost()) {
-            $this->read();
-        }
+
+        return $result;
     }
 
     /**
-     *
+     * @inheritdoc
      */
-    public function read() {
-        $option = get_post_meta($this->getPost()->ID, $this->getOptionName(), true);
-        //try to inherit it from parent category
-        if (empty($option)) {
-            $terms = $this->retrievePostTerms();
-            //use only first term for inheritance
-            $term_id = array_shift($terms);
-            //try to get any parent access
-            $option = $this->inheritAccess($term_id);
-        }
+    public function __sleep(){
+        return array('_post', '_option', '_inherited');
+    }
 
-        $this->setOption(
-                apply_filters('aam_post_access_option', $option, $this->getSubject())
-        );
+    /**
+     * @inheritdoc
+     */
+    public function cacheObject(){
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function save($params = null) {
+        if (is_array($params)) {
+            $this->setInherited(false);
+            update_post_meta($this->getPost()->ID, $this->getOptionName(), $params);
+            //set flag that this subject has custom settings
+            $this->getSubject()->setFlag(aam_Control_Subject::FLAG_MODIFIED);
+        }
+        //fire internal hook
+        do_action_ref_array('aam_object_saved', $this, $params);
+    }
+
+    /**
+     * Get Object Unique ID
+     *
+     * @return string
+     *
+     * @access public
+     */
+    public function getUID() {
+        return self::UID;
     }
 
     /**
@@ -159,8 +225,11 @@ class aam_Control_Object_Post extends aam_Control_Object {
     }
 
     /**
+     * Retrieve list of all hierarchical terms the object belongs to
      *
      * @return array
+     *
+     * @access private
      */
     private function retrievePostTerms() {
         $taxonomies = get_object_taxonomies($this->getPost());
@@ -183,31 +252,12 @@ class aam_Control_Object_Post extends aam_Control_Object {
     }
 
     /**
-     *
-     * @param type $term_id
-     * @return array
-     */
-    private function inheritAccess($term_id) {
-        $term = new aam_Control_Object_Term($this->getSubject(), $term_id);
-        $access = $term->getOption();
-        if (isset($access['post']) && $access['post']) {
-            $result = array('post' => $access['post']);
-        } elseif ($term->getTerm()->parent) {
-            $result = $this->inheritAccess($term->getTerm()->parent);
-        } else {
-            $result = array();
-        }
-
-        return $result;
-    }
-
-    /**
      * Set Post. Cover all unexpectd wierd issues with WP Core
-     * 
+     *
      * @param WP_Post $post
-     * 
+     *
      * @return void
-     * 
+     *
      * @access public
      */
     public function setPost($post) {
@@ -220,9 +270,9 @@ class aam_Control_Object_Post extends aam_Control_Object {
 
     /**
      * Get Post
-     * 
+     *
      * @return WP_Post|stdClass
-     * 
+     *
      * @access public
      */
     public function getPost() {
@@ -243,6 +293,31 @@ class aam_Control_Object_Post extends aam_Control_Object {
      */
     public function getOption() {
         return $this->_option;
+    }
+
+    /**
+     * Set inherited flag
+     *
+     * If post does not have access specified, it'll try to inherit it from the
+     * parent category and if parent category has access defined it'll inherit all
+     * settings and set _inherited flag to true.
+     *
+     * @param boolean $flag
+     *
+     * @return void
+     *
+     * @access public
+     */
+    public function setInherited($flag){
+        $this->_inherited = $flag;
+    }
+
+    /**
+     *
+     * @return type
+     */
+    public function getInherited(){
+        return $this->_inherited;
     }
 
     /**

@@ -8,10 +8,11 @@
  */
 
 /**
- *
+ * Metaboxes & Widgets Tab Controller
+ * 
  * @package AAM
  * @author Vasyl Martyniuk <support@wpaam.com>
- * @copyright Copyright C 2013 Vasyl Martyniuk
+ * @copyright Copyright C Vasyl Martyniuk
  * @license GNU General Public License {@link http://www.gnu.org/licenses/}
  */
 class aam_View_Metabox extends aam_View_Abstract {
@@ -38,8 +39,8 @@ class aam_View_Metabox extends aam_View_Abstract {
         $this->_cache = aam_Core_API::getBlogOption(
                         'aam_metabox_cache', array()
         );
-
-        if ($post_type === '') {
+        
+        if ($post_type === 'dashboard') {
             $this->collectWidgets();
         } else {
             $this->collectMetaboxes($post_type);
@@ -57,7 +58,7 @@ class aam_View_Metabox extends aam_View_Abstract {
         if (!isset($this->_cache['widgets'])) {
             $this->_cache['widgets'] = array();
         }
-
+        
         //get frontend widgets
         if (is_array($wp_registered_widgets)) {
             foreach ($wp_registered_widgets as $id => $data) {
@@ -82,6 +83,11 @@ class aam_View_Metabox extends aam_View_Abstract {
         $this->collectMetaboxes('dashboard');
     }
 
+    /**
+     * 
+     * @global type $wp_meta_boxes
+     * @param type $post_type
+     */
     protected function collectMetaboxes($post_type) {
         global $wp_meta_boxes;
         
@@ -140,7 +146,7 @@ class aam_View_Metabox extends aam_View_Abstract {
             array_unshift($type_list, self::GROUP_WIDGETS);
 
             foreach ($type_list as $type) {
-                if ($type == 'widgets') {
+                if ($type == self::GROUP_WIDGETS) {
                     $url = add_query_arg(
                             'aam_meta_init', 
                             1,
@@ -170,7 +176,7 @@ class aam_View_Metabox extends aam_View_Abstract {
         global $wp_post_types;
 
         $cache = aam_Core_API::getBlogOption('aam_metabox_cache', array());
-        if ($this->getSubject()->getUID() == 'visitor') {
+        if ($this->getSubject()->getUID() == aam_Control_Subject_Visitor::UID) {
             $list = array(
                 'widgets' => (isset($cache['widgets']) ? $cache['widgets'] : array())
             );
@@ -205,11 +211,8 @@ class aam_View_Metabox extends aam_View_Abstract {
                     $content .= '<div class=metabox-row>';
                 }
                 //prepare title
-                if (strlen($metabox['title']) > 18) {
-                    $title = substr($metabox['title'], 0, 15) . '...';
-                } else {
-                    $title = $metabox['title'];
-                }
+                $title = $this->prepareTitle($metabox['title']);
+                
                 //prepare selected
                 if ($metaboxControl->has($screen, $metabox['id'])) {
                     $checked = 'checked="checked"';
@@ -221,7 +224,7 @@ class aam_View_Metabox extends aam_View_Abstract {
 
                 $content .= '<div class="metabox-item">';
                 $content .= sprintf(
-                        '<label for="%s" tooltip="%s">%s</label>', 
+                        '<label for="%s" aam-tooltip="%s">%s</label>', 
                         $metabox_id, 
                         esc_js($metabox['title']), 
                         $title
@@ -247,10 +250,27 @@ class aam_View_Metabox extends aam_View_Abstract {
             $content .= '</div></div></div>';
         }
         $content .= '</div>';
-
-        return json_encode(array('content' => $content));
+        
+        return $content;
     }
 
+     /**
+     * 
+     * @param type $title
+     * @return string
+     */
+    protected function prepareTitle($title) {
+        if (function_exists('mb_strlen')) {
+            if ((mb_strlen($title) > 18)) {
+                $title = mb_substr($title, 0, 15) . '..';
+            }
+        } elseif (strlen($title) > 18) {
+            $title = substr($title, 0, 15) . '..';
+        }
+
+        return $title;
+    }
+    
     /**
      *
      * @param type $text
@@ -266,6 +286,18 @@ class aam_View_Metabox extends aam_View_Abstract {
      */
     public function content() {
         return $this->loadTemplate(dirname(__FILE__) . '/tmpl/metabox.phtml');
+    }
+    
+        /**
+     * @inheritdoc
+     */
+    public function defaultOption($options) {
+         //make sure that some parts are always in place
+        if (!isset($options[aam_Control_Object_Metabox::UID])) {
+            $options[aam_Control_Object_Metabox::UID] = array();
+        }
+        
+        return $options;
     }
 
 }

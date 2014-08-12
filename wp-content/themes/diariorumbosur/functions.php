@@ -114,8 +114,12 @@ add_theme_support( 'post-thumbnails' );
 //set_post_thumbnail_size( 1000, 1000, true ); // default Post Thumbnail dimensions (cropped)
 // additional image sizes
 // delete the next line if you do not need additional image sizes
-//add_image_size( 'moda-thumb', 300, 9999 ); //300 pixels wide (and unlimited height)
+add_image_size( 'catastrofe-thumb', 99999, 500);
 }
+
+
+
+
 
 /* Cropear imágenes */
 

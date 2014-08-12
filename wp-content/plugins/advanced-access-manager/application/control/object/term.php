@@ -25,9 +25,9 @@ class aam_Control_Object_Term extends aam_Control_Object {
      *
      */
     const ACTION_BROWSE = 'browse';
-    
+
     /**
-     * 
+     *
      */
     const ACTION_EXCLUDE = 'exclude';
 
@@ -35,9 +35,9 @@ class aam_Control_Object_Term extends aam_Control_Object {
      *
      */
     const ACTION_EDIT = 'edit';
-    
+
     /**
-     * 
+     *
      */
     const ACTION_LIST = 'list';
 
@@ -54,41 +54,31 @@ class aam_Control_Object_Term extends aam_Control_Object {
     private $_option = array();
 
     /**
-     *
-     * @param type $params
+     * @inheritdoc
+     */
+    public function __sleep(){
+        return array('_term', '_option');
+    }
+
+    /**
+     * @inheritdoc
      */
     public function save($params = null) {
         if (is_array($params)) {
             $this->getSubject()->updateOption(
                     $params, self::UID, $this->getTerm()->term_id
             );
+            //set flag that this subject has custom settings
+            $this->getSubject()->setFlag(aam_Control_Subject::FLAG_MODIFIED);
         }
     }
 
     /**
-     *
-     * @param type $area
-     * @return type
-     */
-    public function getAccessList($area) {
-        if ($area == 'frontend') {
-            $response = array(
-                self::ACTION_BROWSE, self::ACTION_EXCLUDE, self::ACTION_LIST
-            );
-        } elseif ($area == 'backend') {
-            $response = array(
-                self::ACTION_BROWSE, self::ACTION_EDIT, self::ACTION_LIST
-            );
-        } else {
-            $response = array();
-        }
-
-        return apply_filters('aam_term_access_list', $response, $area);
-    }
-
-    /**
-     *
-     * @return type
+     * Get Object Unique ID
+     * 
+     * @return string
+     * 
+     * @access public
      */
     public function getUID() {
         return self::UID;
@@ -101,21 +91,30 @@ class aam_Control_Object_Term extends aam_Control_Object {
     public function init($object_id) {
         if ($object_id) {
             //initialize term first
-            $this->setTerm(get_term($object_id, $this->getTaxonomy($object_id)));
-            if ($this->getTerm()) {
+            $term = get_term($object_id, $this->getTaxonomy($object_id));
+            if ($term && !is_wp_error($term)) {
+                $this->setTerm($term);
                 $access = $this->getSubject()->readOption(
                         self::UID, $this->getTerm()->term_id
                 );
-                if (empty($access)) {
+                $inherit = aam_Core_ConfigPress::getParam(
+                        'aam.term.inherit', 'true'
+                );
+                if (empty($access) && ($inherit == 'true')) {
                     //try to get any parent restriction
                     $access = $this->inheritAccess($this->getTerm()->parent);
                 }
+                
+                //even if parent category is empty, try to read the parent subject
+                if (empty($access)){
+                    $access = $this->getSubject()->readParentSubject(
+                            self::UID, $this->getTerm()->term_id
+                    );
+                }
 
                 $this->setOption(
-                        apply_filters('aam_term_access_option', $access, $this->getSubject())
+                        apply_filters('aam_term_access_option', $access, $this)
                 );
-            } else {
-                aam_Core_Console::write("Term {$object_id} does not exist");
             }
         }
     }
@@ -196,6 +195,13 @@ class aam_Control_Object_Term extends aam_Control_Object {
      */
     public function getOption() {
         return $this->_option;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function cacheObject(){
+        return true;
     }
 
     /**

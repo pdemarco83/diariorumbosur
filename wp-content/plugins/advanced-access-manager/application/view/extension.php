@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ======================================================================
  * LICENSE: This file is subject to the terms and conditions defined in *
@@ -7,10 +8,11 @@
  */
 
 /**
- *
+ * Extension UI controller
+ * 
  * @package AAM
  * @author Vasyl Martyniuk <support@wpaam.com>
- * @copyright Copyright C 2013 Vasyl Martyniuk
+ * @copyright Copyright C Vasyl Martyniuk
  * @license GNU General Public License {@link http://www.gnu.org/licenses/}
  */
 class aam_View_Extension extends aam_View_Abstract {
@@ -18,12 +20,12 @@ class aam_View_Extension extends aam_View_Abstract {
     /**
      * Extensions Repository
      *
-     * @var array
+     * @var aam_Core_Repository
      *
      * @access private
      */
-    private $_repository = array();
-
+    private $_repository;
+    
     /**
      * Constructor
      *
@@ -35,12 +37,7 @@ class aam_View_Extension extends aam_View_Abstract {
      */
     public function __construct() {
         parent::__construct();
-
-        //get repository
-        $repository = aam_Core_API::getBlogOption('aam_extensions', array(), 1);
-        if (is_array($repository)){
-            $this->_repository = $repository;
-        }
+        $this->_repository = aam_Core_Repository::getInstance();
     }
 
     /**
@@ -51,14 +48,16 @@ class aam_View_Extension extends aam_View_Abstract {
      * @access public
      */
     public function install(){
-        $extension = new aam_Core_Extension;
         $license = aam_Core_Request::post('license');
         $ext = aam_Core_Request::post('extension');
 
-        if ($license && $extension->add($ext, $license)){
+        if ($license && $this->getRepository()->add($ext, $license)){
             $response = array('status' => 'success');
         } else {
-            $response = array('status' => 'failure');
+            $response = array(
+                'status' => 'failure',
+                'reasons' => $this->getRepository()->getErrors()
+            );
         }
 
         return json_encode($response);
@@ -72,14 +71,16 @@ class aam_View_Extension extends aam_View_Abstract {
      * @access public
      */
     public function remove(){
-        $extension = new aam_Core_Extension;
         $license = aam_Core_Request::post('license');
         $ext = aam_Core_Request::post('extension');
 
-        if ($extension && $extension->remove($ext, $license)){
+        if ($this->getRepository()->remove($ext, $license)){
             $response = array('status' => 'success');
         } else {
-            $response = array('status' => 'failure');
+            $response = array(
+                'status' => 'failure',
+                'reasons' => $this->getRepository()->getErrors()
+            );
         }
 
         return json_encode($response);
@@ -93,33 +94,22 @@ class aam_View_Extension extends aam_View_Abstract {
      * @access public
      */
     public function run() {
+        //check if plugins/advanced-access-manager/extension is writable
+        if (!is_writable(AAM_BASE_DIR . 'extension')){
+            aam_Core_Console::add(__(
+                    'Folder advanced-access-manager/extension is not writable', 'aam'
+            ));
+        }
+        
         return $this->loadTemplate(dirname(__FILE__) . '/tmpl/extension.phtml');
     }
-
+    
     /**
-     * Check if extensions exists
-     *
-     * @param string $extension
-     *
-     * @return boolean
-     *
-     * @access public
+     * 
+     * @return aam_Core_Respository
      */
-    public function hasExtension($extension){
-        return (isset($this->_repository[$extension]) ? true : false);
+    public function getRepository(){
+        return $this->_repository;
     }
-
-    /**
-     * Get Extension
-     *
-     * @param string $extension
-     *
-     * @return stdClass
-     *
-     * @access public
-     */
-    public function getExtension($extension){
-        return ($this->hasExtension($extension) ? $this->_repository[$extension] : new stdClass);
-    }
-
+    
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ======================================================================
  * LICENSE: This file is subject to the terms and conditions defined in *
@@ -13,15 +14,16 @@
  * @copyright Copyright C 2013 Vasyl Martyniuk
  * @license GNU General Public License {@link http://www.gnu.org/licenses/}
  */
-class aam_View_ConfigPress extends aam_View_Abstract
-{
+class aam_View_ConfigPress extends aam_View_Abstract {
 
     /**
+     * Run the Manager
      *
-     * @return type
+     * @return string
+     *
+     * @access public
      */
-    public function content()
-    {
+    public function run() {
         return $this->loadTemplate(dirname(__FILE__) . '/tmpl/configpress.phtml');
     }
 

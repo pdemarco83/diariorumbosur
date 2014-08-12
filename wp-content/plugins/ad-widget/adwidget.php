@@ -3,7 +3,7 @@
 Plugin Name: Wordpress Ad Widget
 Plugin URI: https://github.com/broadstreetads/wordpress-ad-widget
 Description: The easiest way to place ads in your Wordpress sidebar. Go to Settings -> Ad Widget
-Version: 2.4.0
+Version: 2.6.2
 Author: Broadstreet Ads
 Author URI: http://broadstreetads.com
 */
@@ -20,7 +20,8 @@ add_action('admin_menu', array('AdWidget_Core', 'registerAdmin'));
 class AdWidget_Core
 {
     CONST KEY_INSTALL_REPORT = 'AdWidget_Installed';
-    CONST VERSION = '2.4.0';
+    CONST VERSION = '2.6.2';
+    CONST KEY_WELCOME = 'AdWidget_Welcome';
     
     /**
      * The callback used to register the scripts
@@ -70,10 +71,10 @@ class AdWidget_Core
         self::sendInstallReportIfNew();
         
         if(isset($_POST['cancel']))
-            Broadstreet_Mini_Utility::hasAdserving(false);
+            Broadstreet_Adwidget_Mini_Utility::hasAdserving(false);
         
         if(isset($_POST['subscribe']))
-            Broadstreet_Mini_Utility::hasAdserving(true);
+            Broadstreet_Adwidget_Mini_Utility::hasAdserving(true);
         
         include dirname(__FILE__) . '/views/admin.php';
     }
@@ -83,8 +84,7 @@ class AdWidget_Core
      *  on the blog in case of errors and other needs.
      */
     public static function sendReport($message = 'General')
-    {
-        
+    {        
         $report = "$message\n";
         $report .= get_bloginfo('name'). "\n";
         $report .= get_bloginfo('url'). "\n";
@@ -95,6 +95,30 @@ class AdWidget_Core
 
         @wp_mail('plugin@broadstreetads.com', "Report: $message", $report);
     }
+    
+    /**
+     * Send a welcome email to the user
+     */
+    public static function sendWelcome()
+    {
+        $got_welcome = self::getOption(self::KEY_WELCOME);
+        
+        if($got_welcome != 'true') {
+            $email   = get_bloginfo('admin_email');
+            $subject = "Message from WP AdWidget";
+
+            $body = "Thank you for using WP AdWidget! If you have any questions, reach out to kenny@broadstreetads.com.\n\n"
+                    . "*One Other Thing*\n\nYou might also be interested in Selfie: http://wordpress.org/plugins/selfie :)\n\n"
+                    . "It's self serve advertising that you can implement in a couple minutes.\n\n"
+                    . "Best of luck!\n"
+                    . "- Kenny Katzgrau\n\n"
+                    . '"Our readers are perhaps our greatest untapped resource" - New York Times Innovation Report';
+
+            self::setOption(self::KEY_WELCOME, 'true');
+            
+            @wp_mail($email, $subject, $body);
+        }
+    }
 
     /**
      * If this is a new installation and we've never sent a report to the
@@ -102,25 +126,27 @@ class AdWidget_Core
      * issues should arise in the future.
      */
     public static function sendInstallReportIfNew()
-    {
+    {        
         $install_key = self::KEY_INSTALL_REPORT;
         $upgrade_key = self::KEY_INSTALL_REPORT .'_'. self::VERSION;
         
         $installed = self::getOption($install_key);
         $upgraded  = self::getOption($upgrade_key);
  
-        $sent = ($installed && $upgraded);
+        $sent = ($installed && $upgraded);        
         
         if($sent === FALSE)
-        {
+        {            
             if(!$installed)
             {
+                self::sendWelcome();
                 self::sendReport("Installation");
                 self::setOption($install_key, 'true');
                 self::setOption($upgrade_key, 'true');
             }
             else
             {
+                self::sendWelcome();
                 self::sendReport("Upgrade");
                 self::setOption($upgrade_key, 'true');
             }
@@ -205,7 +231,7 @@ class AdWidget_HTMLWidget extends WP_Widget
         $instance['w_adv']    = $new_instance['w_adv'];
         
         /* New ad? Upload it to Broadstreet */
-        if($instance['w_adcode'] && Broadstreet_Mini_Utility::hasAdserving()) {
+        if($instance['w_adcode'] && Broadstreet_Adwidget_Mini_Utility::hasAdserving()) {
             
             $advertisement_id = false;
             # New ad?
@@ -213,12 +239,12 @@ class AdWidget_HTMLWidget extends WP_Widget
             
             # New advertiser?
             if(!$advertisement_id) {
-                $api = Broadstreet_Mini_Utility::getClient();
-                $adv = $api->createAdvertiser(Broadstreet_Mini_Utility::getNetworkID(), $instance['w_adv']);
+                $api = Broadstreet_Adwidget_Mini_Utility::getClient();
+                $adv = $api->createAdvertiser(Broadstreet_Adwidget_Mini_Utility::getNetworkID(), $instance['w_adv']);
                 $instance['bs_adv_id'] = $adv->id;
             }
                 
-            $ad = Broadstreet_Mini_Utility::importHTMLAd(Broadstreet_Mini_Utility::getNetworkID(), 
+            $ad = Broadstreet_Adwidget_Mini_Utility::importHTMLAd(Broadstreet_Adwidget_Mini_Utility::getNetworkID(), 
                     $instance['bs_adv_id'], 
                     $instance['w_adcode'],
                     $advertisement_id);
@@ -284,6 +310,7 @@ class AdWidget_ImageWidget extends WP_Widget
         $link   = @$instance['w_link'];
         $img    = @$instance['w_img'];
         $resize = @$instance['w_resize'];
+        $new    = @$instance['w_new'];
         $id     = rand(1, 100000);
         
         if($resize == 'yes')
@@ -295,6 +322,16 @@ class AdWidget_ImageWidget extends WP_Widget
             $resize_s = '';
         }
         
+        # There's a reason for this dumb condition
+        if($new == 'yes')
+        {
+            $target = 'target="_blank"';            
+        }
+        else
+        {
+            $target = '';
+        }
+        
         echo $before_widget;
         
         if(!$img)
@@ -303,14 +340,14 @@ class AdWidget_ImageWidget extends WP_Widget
             $link = 'http://adsofthefuture.com';
         }
         
-        if(Broadstreet_Mini_Utility::hasAdserving() && is_numeric($instance['bs_ad_id']))
+        if(Broadstreet_Adwidget_Mini_Utility::hasAdserving() && is_numeric($instance['bs_ad_id']))
         {
             if($resize == 'yes') echo '<style type="text/css">.adwidget-id'.$id.' img { width: 100% !important; height: auto !important; }</style>';
             echo "<span class='adwidget-id$id'>{$instance['bs_ad_html']}</span>";
         }
         else
         {
-            echo "<a target='_blank' href='$link' alt='Ad'><img $resize_s src='$img' alt='Ad' /></a>";
+            echo "<a $target href='$link' alt='Ad'><img $resize_s src='$img' alt='Ad' /></a>";
         }
 
         echo $after_widget;
@@ -332,10 +369,11 @@ class AdWidget_ImageWidget extends WP_Widget
         $instance['w_link']    = $new_instance['w_link'];
         $instance['w_img']     = $new_instance['w_img'];
         $instance['w_resize']  = @$new_instance['w_resize'];
+        $instance['w_new']     = @$new_instance['w_new'];
         $instance['w_adv']     = $new_instance['w_adv'];
         
         /* New ad? Upload it to Broadstreet */
-        if($instance['w_img'] && $changed && Broadstreet_Mini_Utility::hasAdserving()) {
+        if($instance['w_img'] && $changed && Broadstreet_Adwidget_Mini_Utility::hasAdserving()) {
             
             $advertisement_id = false;
             # New ad?
@@ -343,12 +381,12 @@ class AdWidget_ImageWidget extends WP_Widget
             
             # New advertiser?
             if(!$advertisement_id) {
-                $api = Broadstreet_Mini_Utility::getClient();
-                $adv = $api->createAdvertiser(Broadstreet_Mini_Utility::getNetworkID(), $instance['w_adv']);
+                $api = Broadstreet_Adwidget_Mini_Utility::getClient();
+                $adv = $api->createAdvertiser(Broadstreet_Adwidget_Mini_Utility::getNetworkID(), $instance['w_adv']);
                 $instance['bs_adv_id'] = $adv->id;
             }
                 
-            $ad = Broadstreet_Mini_Utility::importImageAd(Broadstreet_Mini_Utility::getNetworkID(), 
+            $ad = Broadstreet_Adwidget_Mini_Utility::importImageAd(Broadstreet_Adwidget_Mini_Utility::getNetworkID(), 
                     $instance['bs_adv_id'], 
                     $instance['w_img'], 
                     $instance['w_link'],
@@ -373,7 +411,7 @@ class AdWidget_ImageWidget extends WP_Widget
         $link_id = $this->get_field_id('w_link');
         $img_id = $this->get_field_id('w_img');
         
-        $defaults = array('w_link' => get_bloginfo('url'), 'w_img' => '', 'w_adv' => 'New Advertiser', 'w_resize' => 'no');
+        $defaults = array('w_link' => get_bloginfo('url'), 'w_img' => '', 'w_adv' => 'New Advertiser', 'w_resize' => 'no', 'w_new' => 'no');
         
 		$instance = wp_parse_args((array) $instance, $defaults);
         
@@ -406,9 +444,16 @@ class AdWidget_ImageWidget extends WP_Widget
            <label for="<?php echo $this->get_field_id('w_resize'); ?>">Auto Resize to Max Width? </label>
            <input type="checkbox" name="<?php echo $this->get_field_name('w_resize'); ?>" value="yes"  <?php if($instance['w_resize'] == 'yes') echo 'checked'; ?> />
        </p>
-       <?php if(!Broadstreet_Mini_Utility::hasAdserving()): ?>
+       <p>
+           <label for="<?php echo $this->get_field_id('w_new'); ?>">Open in New Window? </label>
+           <input type="checkbox" name="<?php echo $this->get_field_name('w_new'); ?>" value="yes"  <?php if($instance['w_new'] == 'yes') echo 'checked'; ?> />
+       </p>
+       <p>
+           <span style="color: green; font-weight: bold;">Tip:</span> If you're using this widget, you might also find <a target="_blank" href="http://wordpress.org/plugins/selfie">Selfie</a> useful.
+       </p>
+       <?php if(!Broadstreet_Adwidget_Mini_Utility::hasAdserving()): ?>
         <p>
-            <span style="color: green; font-weight: bold;">New!</span> When you're ready for a more powerful adserver with click reporting <a target="_blank" href="#" onclick="broadstreet_upgrade(); return false;">click here</a>.
+            When you're ready for a more powerful adserver with click reporting <a target="_blank" href="#" onclick="broadstreet_upgrade(); return false;">click here</a>.
             <script language="javascript">
                 if(!window.broadstreet_upgrade)
                 {
@@ -419,7 +464,7 @@ class AdWidget_ImageWidget extends WP_Widget
                             alert('Save any unsaved widgets and refresh this page to see new upgraded options');
                         };
 
-                        tb_show('Broadstreet', '<?php echo bs_get_base_url('views/modal/') ?>' + '?fake=fake&width=650&height=580&TB_iframe=true');
+                        tb_show('Broadstreet', '<?php echo bsadwidget_get_base_url('views/modal/') ?>' + '?fake=fake&width=650&height=580&TB_iframe=true');
                     }
                 }
             </script>
@@ -436,7 +481,7 @@ class AdWidget_ImageWidget extends WP_Widget
                             tb_remove();
                         };
 
-                        tb_show('Broadstreet', '<?php echo bs_get_base_url('views/modal/?step=reports&adv_id=' . @$instance['bs_adv_id'] . '&ad_id=' . @$instance['bs_ad_id']) ?>' + '&width=650&height=580&TB_iframe=true');
+                        tb_show('Broadstreet', '<?php echo bsadwidget_get_base_url('views/modal/?step=reports&adv_id=' . @$instance['bs_adv_id'] . '&ad_id=' . @$instance['bs_ad_id']) ?>' + '&width=650&height=580&TB_iframe=true');
                     }
                 }
             </script>

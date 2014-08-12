@@ -616,6 +616,76 @@ a:active {
 	.dest {margin-top: 20rem; margin-left: 24.5rem;}
 	.tap {margin-top: 25.3rem; margin-left: 24.5rem; z-index: 10000;}
 	.par {margin-top: 10.5rem; margin-left: 24.7rem; z-index: 10000;}
+	.catast {display:none;}
+
+
+/* Catástrofe*/
+
+.area-catastrofe {
+
+}
+
+.catastrofe {
+	float: left;
+	width:100.2rem;
+	height:50rem;
+	margin-left: 2.1rem;
+	margin-bottom:2rem;
+	overflow: hidden; 
+}
+
+.catastrofe img {
+	width:100.2rem;
+	height:50rem;
+	float: left;
+	margin-bottom: 0.1rem;
+	position: relative;
+	overflow: hidden;
+}
+
+.catastrofe .pic {
+	width: 100.2rem;
+	height: 50rem;
+	background-color: #ffffff;
+	padding:0;
+	margin: 0;
+	position: absolute;
+}
+
+.catastrofe .entry-title {
+	margin:0; 
+	margin-top: 35.7rem;
+	padding: 0;
+	position: absolute;
+	overflow: hidden;
+}
+
+.catastrofe a {
+	font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; 
+	color: #ffffff;
+	font-size: 6rem;
+	font-weight: normal;
+	letter-spacing: normal;
+	line-height: 6rem;
+	width: 98.2rem;
+	height:13.3rem;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	padding-top: 1rem;
+	display: block;
+	background-color:rgba(77,77,77,0.65); 
+}
+
+.catastrofe a:hover {color: #148ac3; background-color:rgba(255,255,255,0.85);}
+
+.catastrofe h1 span {
+	font-size: 1.6rem;
+	display: block;
+	line-height: 1.8rem;
+	margin-top: 1rem;
+	overflow: hidden;
+}
+
 
 
 /* Destacadas*/
@@ -646,6 +716,10 @@ a:active {
 	float: left;
 	margin:0; 
 	padding: 0;
+	width: 32rem;
+	height:6.2rem;
+	background-color:#333333;
+
 }
 
 .destacadas a {
@@ -653,17 +727,23 @@ a:active {
 	color: #ffffff;
 	font-size: 2rem;
 	font-weight: normal;
-	width: 30rem;
-	height:6.2rem;
+	/*width: 30rem;
+	height:6.2rem;*/
 	padding-left: 1rem;
 	padding-right: 1rem;
-	padding-top: 0.7rem;
+	padding-top: 0.5rem;
 	display: block;
 	line-height: 2.5rem;
-	background-color:#333333;
+	/*background-color:#333333;*/
 }
 
 .destacadas a:hover {color: #148ac3;}
+
+.vcontainer {
+	width: 320px;
+	height: 240px;
+	margin-bottom: 1px;
+}
 
 
 /* De tapa con foto */
@@ -690,6 +770,8 @@ a:active {
 	padding:0;
 	margin: 0;
 	position: absolute;
+	width: 32rem;
+	height: 28rem;
 }
 
 .detapa .entry-title {
@@ -914,7 +996,7 @@ a:active {
 ----------------------------------------------- */
 
 
-/* Moda */
+/* Template 1 (Moda) */
 
 @font-face {
 font-family:yanone;
@@ -923,7 +1005,7 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 
 @import url(http://fonts.googleapis.com/css?family=Oswald:300,400,700&subset=latin,latin-ext);
 
-.moda {
+.template-1 {
 	float: left;
 	width:70rem;
 	min-height:28rem;
@@ -931,13 +1013,13 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 	font-family:yanone;
 }
 
-.moda img {
+.template-1 img {
 	/*width:70rem;*/
 	float: left;
 	margin-bottom: 0.1rem;
 }
 
-.moda .pic {
+.template-1 .pic {
 	background-color: #ffffff;
 	padding:0;
 	margin: 0;
@@ -945,7 +1027,7 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 	width: 70rem;
 }
 
-.moda .entry-title {
+.template-1 .entry-title {
 	font-family:yanone;
 	font-weight: normal;
 	margin:0; 
@@ -955,7 +1037,7 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 	overflow: hidden;
 }
 
-.moda a {
+.template-1 a {
 	font-family: 'Oswald', sans-serif;
 	color: #000000;
 	font-size: 1.7rem;
@@ -969,9 +1051,9 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 	text-transform: uppercase;
 }
 
-.moda a:hover {color: #148ac3; background-color:rgba(255,255,255,0.85);}
+.template-1 a:hover {color: #148ac3; background-color:rgba(255,255,255,0.85);}
 
-.moda h1 span {
+.template-1 h1 span {
 	font-weight: 300;
 	display: block;
 	margin-top: 1rem;
@@ -980,14 +1062,14 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 	color:#444444;
 }
 
-#moda-bar a {
+#template-1-bar a {
 	font-family: 'Oswald', sans-serif;
 	font-weight: 300;
 	font-size: 1.5rem;
 	letter-spacing: 0.1rem;
 }
 
-.category-moda .widget-title {
+.template-1-sidebar .widget-title {
 	font-family:oswald;
 	font-weight: 400;
 	font-size: 2.5rem;
@@ -996,4 +1078,217 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 	border-top: 0.1rem solid #EEEEEE;
 	border-bottom: 0.1rem solid #EEEEEE;
 	margin-top: 4.5rem;
+}
+
+
+/* Template-2 (Agro) */
+
+
+.template-2 {
+	float: left;
+	width:70rem;
+	min-height:28rem;
+	overflow: hidden; 
+	font-family:yanone;
+}
+
+.template-2 img {
+	/*width:70rem;*/
+	float: left;
+	margin-bottom: 0.1rem;
+}
+
+.template-2 .pic {
+	background-color: #ffffff;
+	padding:0;
+	margin: 0;
+	float:left;
+	width: 70rem;
+}
+
+.template-2 .entry-title {
+	font-family:yanone;
+	font-weight: normal;
+	margin:0; 
+	margin-top: 1rem;
+	padding: 0;
+	float:left;
+	overflow: hidden;
+}
+
+.template-2 a {
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	font-weight: bold;
+	color: #000000;
+	font-size: 1.7rem;
+	width: 70rem;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	padding-top: 0.6rem;
+	display: block;
+	text-align: left;
+	letter-spacing: 0.1rem;
+}
+
+.template-2 a:hover {color: #148ac3; background-color:rgba(255,255,255,0.85);}
+
+.template-2 h1 span {
+	font-weight: normal;
+	font-size: 1.5rem;
+	display: block;
+	margin-top: 1rem;
+	overflow: hidden;
+	text-transform: none;
+	color:#444444;
+}
+
+#template-2-bar a {
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	font-weight: bold;
+	font-size: 1.2rem;
+	letter-spacing: 0.1rem;
+	color: #000000;
+}
+
+#template-2-bar .rpwe-summary {
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	font-weight: normal;
+	font-size: 1.2rem;
+	letter-spacing: 0.1rem;
+	color: #000000;
+}
+
+.template-2-sidebar .widget-title {
+	font-family:oswald;
+	font-weight: 400;
+	font-size: 2.5rem;
+	color: #148ACE;
+	letter-spacing: 0.1rem;
+	border-top: 0.1rem solid #EEEEEE;
+	border-bottom: 0.1rem solid #EEEEEE;
+	margin-top: 4.5rem;
+}
+
+
+
+/* template-3 (Business) */
+
+
+.template-3 {
+	float: left;
+	width:70rem;
+	min-height:28rem;
+	overflow: hidden; 
+	font-family:yanone;
+}
+
+.template-3 img {
+	/*width:70rem;*/
+	float: left;
+	margin-bottom: 0.1rem;
+}
+
+.template-3 .pic {
+	background-color: #ffffff;
+	padding:0;
+	margin: 0;
+	float:left;
+	width: 70rem;
+}
+
+.template-3 .entry-title {
+	font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+	font-weight: normal;
+	margin:0; 
+	margin-top: 1rem;
+	padding: 0;
+	float:left;
+	overflow: hidden;
+}
+
+.template-3 a {
+	font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+	font-weight: bold;
+	color: #000000;
+	font-size: 1.7rem;
+	width: 70rem;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	padding-top: 0.6rem;
+	display: block;
+	text-align: left;
+	letter-spacing: 0.1rem;
+}
+
+.template-3 a:hover {color: #148ac3; background-color:rgba(255,255,255,0.85);}
+
+.template-3 h1 span {
+	font-weight: normal;
+	font-size: 1.5rem;
+	display: block;
+	margin-top: 1rem;
+	overflow: hidden;
+	text-transform: none;
+	color:#444444;
+}
+
+#template-3-bar a {
+	font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+	font-weight: bold;
+	font-size: 1.2rem;
+	letter-spacing: 0.1rem;
+	color: #000000;
+}
+
+#template-3-bar .rpwe-summary {
+	font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+	font-weight: normal;
+	font-size: 1.2rem;
+	letter-spacing: 0.1rem;
+	color: #000000;
+}
+
+.template-3-sidebar .widget-title {
+	font-family:oswald;
+	font-weight: 400;
+	font-size: 2.5rem;
+	color: #148ACE;
+	letter-spacing: 0.1rem;
+	border-top: 0.1rem solid #EEEEEE;
+	border-bottom: 0.1rem solid #EEEEEE;
+	margin-top: 4.5rem;
+}
+
+/* Archivo de noticias */
+
+#jal_widget-2 .widget-title {
+	display: block;
+	height: 4rem;
+	padding-top: 1.5rem;
+	padding-left: 1.5rem;
+	background: #148AC3;
+	background-position: 5% center;
+	font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-size: 1.8rem;
+	color: #ffffff; 
+	margin-top: 0px;
+}
+
+#jal_widget-2 ul{
+	list-style: none;
+}
+
+/* Últimas noticias */
+
+#rpwe_widget-2 .widget-title {
+	display: block;
+	height: 4rem;
+	padding-top: 1.5rem;
+	padding-left: 1.5rem;
+	background: #148AC3;
+	background-position: 5% center;
+	font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-size: 1.8rem;
+	color: #ffffff; 
+	margin-top: 0px;
 }

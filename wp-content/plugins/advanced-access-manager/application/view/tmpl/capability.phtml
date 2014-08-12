@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ======================================================================
  * LICENSE: This file is subject to the terms and conditions defined in *
@@ -33,8 +34,8 @@
                     <tr>
                         <td><?php echo $group; ?></td>
                         <td>
-                            <div class="capability-actions">
-                                <a href="#" class="capability-action capability-action-select"></a>
+                            <div class="aam-list-row-actions">
+                                <a href="#" class="aam-icon aam-icon-small aam-icon-select"><span></span></a>
                             </div>
                         </td>
                     </tr>
@@ -62,8 +63,15 @@
         <table class="dataTable">
             <tbody>
                 <tr>
-                    <th><?php echo __('Capability Name', 'aam'); ?><span class="aam-asterix">*</span>:</th>
+                    <th class="aam-align-right"><?php echo __('Capability Name', 'aam'); ?><span class="aam-asterix">*</span>:</th>
                     <td><input type="text" id="capability_name" class="aam-input" /></td>
+                </tr>
+                <tr>
+                    <th class="aam-align-right"><?php echo __('Keep Unfiltered', 'aam'); ?>:</th>
+                    <td>
+                        <input type="checkbox" id="capability_unfiltered" />
+                        <label for="capability_unfiltered"><span></span></label>
+                    </td>
                 </tr>
             </tbody>
         </table>

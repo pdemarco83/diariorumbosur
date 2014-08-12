@@ -1,10 +1,9 @@
 === Password Protected ===
 Contributors: husobj
-Donate link: http://www.benhuson.co.uk/donate/
 Tags: password, protect, password protect, login
 Requires at least: 3.2
-Tested up to: 3.8
-Stable tag: 1.6.2
+Tested up to: 3.9
+Stable tag: 1.7.2
 License: GPLv2 or later
 
 A very simple way to quickly password protect your WordPress site with a single password.
@@ -24,7 +23,12 @@ Features include:
 * Works with the [Uber Login Logo](http://wordpress.org/plugins/uber-login-logo/) plugin.
 
 > Please note, this plugin does not currently work with WP Engine hosting due to their page caching implementation.
-            
+
+= Translations =
+
+If you would like to translate this plugin you can easily contribute via our [Transifex page](https://www.transifex.com/projects/p/password-protected/resource/password-protected/) - just signup for a free account.
+More instructions can be found at [wp-translations.org](http://wp-translations.org/translators-wp-translations/)
+
 == Installation ==
 
 To install and configure this plugin...
@@ -62,12 +66,30 @@ You can also submit suggested enhancements if you like.
 = How can I contribute? =
 If you can, please [fork the code](https://github.com/benhuson/password-protected) and submit a pull request via GitHub. If you're not comfortable using Git, then please just submit it to the issues link above.
 
+= How can I translate this plugin? =
+If you would like to translate this plugin you can easily contribute via our [Transifex page](https://www.transifex.com/projects/p/password-protected/resource/password-protected/) - just signup for a free account.
+More instructions can be found at [wp-translations.org](http://wp-translations.org/translators-wp-translations/)
+
 == Screenshots ==
 
 1. Login page perfectly mimicks the WordPress login.
 2. Password Protected settings page.
 
 == Changelog ==
+
+= 1.7.2 =
+* Added 'password_protected_login_redirect' filter.
+* Fix always allow access to robots.txt.
+* Updated translations.
+
+= 1.7.1 =
+* Fix login template compatibility for WordPress 3.9
+
+= 1.7 =
+* Added 'password_protected_theme_file' filter to allow custom login templates.
+* It's now really easy to contribute to the translation of this plugin via our [Transifex page](https://www.transifex.com/projects/p/password-protected/resource/password-protected/).
+* Add option to allow logged in users.
+* Remove JavaScript that disables admin RSS checkbox.
 
 = 1.6.2 =
 * Set login page not to index if privacy setting is on.
@@ -119,6 +141,15 @@ If you can, please [fork the code](https://github.com/benhuson/password-protecte
 * First Release. If you spot any bugs or issues please [log them here](https://github.com/benhuson/password-protected/issues).
 
 == Upgrade Notice ==
+
+= 1.7.2 =
+Added 'password_protected_login_redirect' filter.
+
+= 1.7.1 =
+Fix login template compatibility for WordPress 3.9
+
+= 1.7 =
+Added 'password_protected_theme_file' filter and option to allow logged in users. Contribute to the translation of this plugin via our [Transifex page](https://www.transifex.com/projects/p/password-protected/resource/password-protected/).
 
 = 1.6.2 =
 Allow redirection to a different URL when logging out.

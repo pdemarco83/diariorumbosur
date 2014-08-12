@@ -8,23 +8,18 @@
  */
 
 /**
+ * AAM Multisite Support Extension
  *
  * @package AAM
  * @author Vasyl Martyniuk <support@wpaam.com>
- * @copyright Copyright C 2013 Vasyl Martyniuk
+ * @copyright Copyright C 2014 Vasyl Martyniuk
  * @license GNU General Public License {@link http://www.gnu.org/licenses/}
  */
-class AAM_Extension_Multisite {
+class AAM_Extension_Multisite extends AAM_Core_Extension {
 
     /**
      *
-     * @var type 
-     */
-    private $_parent = null;
-
-    /**
-     *
-     * @var type 
+     * @var type
      */
     private $_subject = null;
 
@@ -33,20 +28,20 @@ class AAM_Extension_Multisite {
      * @param aam|aam_View_Connector $parent
      */
     public function __construct(aam $parent) {
-        $this->setParent($parent);
+        parent::__construct($parent);
         if (aam_Core_API::isNetworkPanel()) {
             add_action('admin_print_scripts', array($this, 'printScripts'));
             add_action('admin_print_styles', array($this, 'printStyles'));
             add_action('aam_localization_labels', array($this, 'localizationLabels'));
-            add_filter('aam_ui_subjects', array($this, 'addUISubject'), 10, 1);
             add_action('wpmu_new_blog', array($this, 'newBlog'), 10, 6);
+            $this->registerSubject();
         } elseif (is_admin()) {
             add_filter('aam_ajax_call', array($this, 'ajax'), 10, 2);
         }
     }
 
     /**
-     * 
+     *
      * @param type $blog_id
      * @param type $user_id
      * @param type $domain
@@ -56,13 +51,13 @@ class AAM_Extension_Multisite {
      */
     public function newBlog($blog_id, $user_id, $domain, $path, $site_id, $meta) {
         global $wpdb;
-        
+
         if ($default_id = aam_Core_API::getBlogOption('aam_default_site', 0, 1)){
             $default_option = $wpdb->get_blog_prefix($default_id) . 'user_roles';
             $roles = aam_Core_API::getBlogOption($default_option, null, $default_id);
             if ($roles){
                 aam_Core_API::updateBlogOption(
-                        $wpdb->get_blog_prefix($blog_id) . 'user_roles', 
+                        $wpdb->get_blog_prefix($blog_id) . 'user_roles',
                         $roles, $blog_id
                 );
             }
@@ -70,30 +65,30 @@ class AAM_Extension_Multisite {
     }
 
     /**
-     * 
+     *
      * @return type
      */
     protected function getSiteList() {
-        $list = _get_list_table('WP_MS_Sites_List_Table');
-        $list->prepare_items();
+        //retrieve site list first
+        $blog_list = $this->retrieveSiteList();
 
         $response = array(
-            'iTotalRecords' => $list->get_pagination_arg('total_items'),
-            'iTotalDisplayRecords' => $list->get_pagination_arg('total_items'),
+            'iTotalRecords' => count($blog_list),
+            'iTotalDisplayRecords' => count($blog_list),
             'sEcho' => aam_Core_Request::request('sEcho'),
             'aaData' => array(),
         );
         $default = aam_Core_API::getBlogOption('aam_default_site', 0, 1);
 
-        foreach ($list->items as $site) {
-            $blog = get_blog_details($site['blog_id']);
+        foreach ($blog_list as $site) {
+            $blog = get_blog_details($site->blog_id);
             $response['aaData'][] = array(
-                $site['blog_id'],
-                get_admin_url($site['blog_id'], 'admin.php'),
-                get_admin_url($site['blog_id'], 'admin-ajax.php'),
+                $site->blog_id,
+                get_admin_url($site->blog_id, 'admin.php'),
+                get_admin_url($site->blog_id, 'admin-ajax.php'),
                 $blog->blogname,
                 '',
-                ($site['blog_id'] == $default ? 1 : 0)
+                ($site->blog_id == $default ? 1 : 0)
             );
         }
 
@@ -101,33 +96,46 @@ class AAM_Extension_Multisite {
     }
 
     /**
-     * 
-     * @param type $subjects
-     * @return type
+     * Retieve the list of sites
+     *
+     * @return array
+     *
+     * @access public
      */
-    public function addUISubject($subjects) {
-        $subjects['multisite'] = array(
+    public function retrieveSiteList(){
+        global $wpdb;
+
+        return $wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs);
+    }
+
+    /**
+     * Register new subject Multisite
+     *
+     * @return void
+     *
+     * @access public
+     */
+    public function registerSubject() {
+        aam_View_Collection::registerSubject((object)array(
             'position' => 1,
             'segment' => 'multisite',
             'label' => __('Sites', 'aam'),
             'title' => __('Site Manager', 'aam'),
             'class' => 'manager-item manager-item-multisite',
-            'id' => 'aam_multisite',
-            'content' => array($this, 'content')
-        );
-
-        return $subjects;
+            'uid' => 'multisite',
+            'controller' => $this
+        ));
     }
 
     /**
-     * 
+     *
      * @return type
      */
     public function content() {
         ob_start();
-        require_once dirname(__FILE__) . '/ui.phtml';
+        require dirname(__FILE__) . '/ui.phtml';
         $content = ob_get_contents();
-        ob_clean();
+        ob_end_clean();
 
         return $content;
     }
@@ -142,7 +150,9 @@ class AAM_Extension_Multisite {
     public function printScripts() {
         if ($this->getParent()->isAAMScreen()) {
             wp_enqueue_script(
-                    'aam-multisite-admin', AAM_MULTISITE_BASE_URL . '/multisite.js', array('aam-admin')
+                    'aam-multisite-admin',
+                    AAM_MULTISITE_BASE_URL . '/multisite.js',
+                    array('aam-admin')
             );
             $localization = array(
                 'nonce' => wp_create_nonce('aam_ajax'),
@@ -157,7 +167,7 @@ class AAM_Extension_Multisite {
     }
 
     /**
-     * 
+     *
      */
     public function printStyles() {
         if ($this->getParent()->isAAMScreen()) {
@@ -168,7 +178,7 @@ class AAM_Extension_Multisite {
     }
 
     /**
-     * 
+     *
      * @param type $labels
      * @return type
      */
@@ -181,7 +191,7 @@ class AAM_Extension_Multisite {
     }
 
     /**
-     * 
+     *
      * @param type $default
      * @param aam_Control_Subject $subject
      * @return type
@@ -225,23 +235,7 @@ class AAM_Extension_Multisite {
     }
 
     /**
-     * 
-     * @param aam $parent
-     */
-    public function setParent(aam $parent) {
-        $this->_parent = $parent;
-    }
-
-    /**
      *
-     * @return aam
-     */
-    public function getParent() {
-        return $this->_parent;
-    }
-
-    /**
-     * 
      * @param type $subject
      */
     public function setSubject($subject) {
@@ -249,7 +243,7 @@ class AAM_Extension_Multisite {
     }
 
     /**
-     * 
+     *
      * @return type
      */
     public function getSubject() {

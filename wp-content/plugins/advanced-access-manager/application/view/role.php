@@ -17,16 +17,22 @@
 class aam_View_Role extends aam_View_Abstract {
 
     /**
-     *
-     * @return type
+     * Generate UI Content
+     * 
+     * @return string
+     * 
+     * @access public
      */
     public function content() {
         return $this->loadTemplate(dirname(__FILE__) . '/tmpl/role.phtml');
     }
 
     /**
-     *
-     * @return type
+     * Get Role List
+     * 
+     * @return string JSON Encoded role list
+     * 
+     * @access public
      */
     public function retrieveList() {
         //retrieve list of users
@@ -54,24 +60,47 @@ class aam_View_Role extends aam_View_Abstract {
             $response['aaData'][] = array(
                 $role,
                 $users,
-                $data['name'],
+                translate_user_role($data['name']),
                 ''
             );
         }
 
         return json_encode($response);
     }
+    
+    /**
+     * Retrieve Pure Role List
+     * 
+     * @return string
+     */
+    public function retrievePureList(){
+        return json_encode(get_editable_roles());
+    }
 
     /**
-     *
-     * @return type
+     * Add New Role
+     * 
+     * @return string
+     * 
+     * @access public
      */
     public function add() {
         $name = trim(aam_Core_Request::post('name'));
         $roles = new WP_Roles;
-        $role_id = 'aamrole_' . uniqid();
+        if (aam_Core_ConfigPress::getParam('aam.native_role_id') === 'true'){
+            $role_id = strtolower($name);
+        } else {
+            $role_id = 'aamrole_' . uniqid();
+        }
+        //if inherited role is set get capabilities from it
+        $parent = trim(aam_Core_Request::post('inherit'));
+        if ($parent && $roles->get_role($parent)){
+            $caps = $roles->get_role($parent)->capabilities;
+        } else {
+            $caps = array();
+        }
 
-        if ($roles->add_role($role_id, $name)) {
+        if ($roles->add_role($role_id, $name, $caps)) {
             $response = array(
                 'status' => 'success',
                 'role' => $role_id

@@ -15,8 +15,9 @@ echo $category[0]->cat_name;
 ?>
 	</div>
     <a class="pic" href="<?php the_permalink(); ?>" title="<?php echo esc_attr( sprintf( __( '%s', 'diariorumbosur' ), the_title_attribute( 'echo=0' ) ) ); ?>" rel="bookmark">
-    <?php echo get_the_post_thumbnail($page->ID, 'thumbnail'); ?>
+    <?php echo get_the_post_thumbnail($page->ID, 'thumbnail'); ?> 
     </a>
+    <div class="vcontainer"><?php the_field('video'); ?></div>
     <h1 class="entry-title"><a href="<?php the_permalink(); ?>" title="<?php echo esc_attr( sprintf( __( '%s', 'diariorumbosur' ), the_title_attribute( 'echo=0' ) ) ); ?>" rel="bookmark"><?php the_title(); ?></a></h1>
     </div>
 </article><!-- #post-<?php the_ID(); ?> -->

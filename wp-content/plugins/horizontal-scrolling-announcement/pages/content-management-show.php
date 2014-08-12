@@ -1,9 +1,5 @@
+<?php if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); } ?>
 <?php
-// Stop direct call
-if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { 
-	die('You are not allowed to call this page directly.'); 
-}
-
 // Form submitted, check the data
 if (isset($_POST['frm_hsa_display']) && $_POST['frm_hsa_display'] == 'yes')
 {
@@ -82,7 +78,8 @@ if (isset($_POST['frm_hsa_display']) && $_POST['frm_hsa_display'] == 'yes')
             <th scope="col"><?php _e('Order', WP_hsa_UNIQUE_NAME); ?></th>
             <th scope="col"><?php _e('Display', WP_hsa_UNIQUE_NAME); ?></th>
             <th scope="col"><?php _e('Group', WP_hsa_UNIQUE_NAME); ?></th>
-            <th scope="col"><?php _e('Expiration', WP_hsa_UNIQUE_NAME); ?></th>
+            <th scope="col"><?php _e('Start Date', WP_hsa_UNIQUE_NAME); ?></th>
+			<th scope="col"><?php _e('Expiration', WP_hsa_UNIQUE_NAME); ?></th>
           </tr>
         </thead>
         <tfoot>
@@ -92,6 +89,7 @@ if (isset($_POST['frm_hsa_display']) && $_POST['frm_hsa_display'] == 'yes')
             <th scope="col"><?php _e('Order', WP_hsa_UNIQUE_NAME); ?></th>
             <th scope="col"><?php _e('Display', WP_hsa_UNIQUE_NAME); ?></th>
             <th scope="col"><?php _e('Group', WP_hsa_UNIQUE_NAME); ?></th>
+			<th scope="col"><?php _e('Start Date', WP_hsa_UNIQUE_NAME); ?></th>
             <th scope="col"><?php _e('Expiration', WP_hsa_UNIQUE_NAME); ?></th>
           </tr>
         </tfoot>
@@ -115,6 +113,7 @@ if (isset($_POST['frm_hsa_display']) && $_POST['frm_hsa_display'] == 'yes')
 					<td><?php echo stripslashes($data['hsa_order']); ?></td>
 					<td><?php echo stripslashes($data['hsa_status']); ?></td>
 					<td><?php echo stripslashes($data['hsa_group']); ?></td>
+					<td><?php echo substr($data['hsa_datestart'],0,10); ?></td>
 					<td><?php echo substr($data['hsa_dateend'],0,10); ?></td>
 				</tr>
 				<?php 
@@ -125,7 +124,7 @@ if (isset($_POST['frm_hsa_display']) && $_POST['frm_hsa_display'] == 'yes')
 			{
 				?>
 				<tr>
-					<td colspan="6" align="center"><?php _e('No records available.', WP_hsa_UNIQUE_NAME); ?></td>
+					<td colspan="7" align="center"><?php _e('No records available.', WP_hsa_UNIQUE_NAME); ?></td>
 				</tr>
 				<?php 
 			}

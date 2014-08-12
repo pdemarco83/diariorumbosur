@@ -140,8 +140,6 @@ AAM.prototype.setSubject = function(type, id) {
 /**
  * Get Current Subject
  *
- * @param {String} subject
- *
  * @returns {void}
  *
  * @access public
@@ -162,8 +160,40 @@ AAM.prototype.initUI = function() {
     this.initControlPanel();
     this.initControlManager();
 
-    //Retrieve settings of default segment
+    //Retrieve settings for default segment
     this.retrieveSettings();
+    
+    //init contextual menu if necessary
+    this.initContextualMenu();
+};
+
+/**
+ * Initial Contextual Menu
+ * 
+ * @returns void
+ * 
+ * @access public
+ */
+AAM.prototype.initContextualMenu = function(){
+    var _this = this;
+    if (parseInt(aamLocal.contextualMenu) !== 1){
+        jQuery('#contextual-help-link-wrap').pointer({
+                pointerClass : 'aam-help-pointer',
+                pointerWidth : 300,
+                content: aamLocal.labels['AAM Documentation'],
+                position: {
+                        edge : 'top',
+                        align : 'right'
+                },
+                close: function() {
+                    jQuery.ajax(aamLocal.ajaxurl, {
+                        type: 'POST',
+                        dataType: 'json',
+                        data: _this.compileAjaxPackage('discardHelp', false)
+                    });
+                }
+        }).pointer('open');
+    }
 };
 
 /**
@@ -176,16 +206,16 @@ AAM.prototype.initUI = function() {
  * @access public
  */
 AAM.prototype.initTooltip = function(selector) {
-    jQuery('[tooltip]', selector).hover(function() {
+    jQuery('[aam-tooltip]', selector).hover(function() {
         // Hover over code
-        var title = jQuery(this).attr('tooltip');
-        jQuery(this).data('tipText', title).removeAttr('tooltip');
+        var title = jQuery(this).attr('aam-tooltip');
+        jQuery(this).data('tipText', title).removeAttr('aam-tooltip');
         jQuery('<div/>', {
             'class': 'aam-tooltip'
         }).text(title).appendTo('body').fadeIn('slow');
     }, function() {
         //Hover out code
-        jQuery(this).attr('tooltip', jQuery(this).data('tipText'));
+        jQuery(this).attr('aam-tooltip', jQuery(this).data('tipText'));
         jQuery('.aam-tooltip').remove();
     }).mousemove(function(e) {
         jQuery('.aam-tooltip').css({
@@ -246,6 +276,28 @@ AAM.prototype.compileAjaxPackage = function(action, include_subject) {
 };
 
 /**
+ * Disable roleback button
+ * 
+ * @returns void
+ * 
+ * @access public
+ */
+AAM.prototype.disableRoleback = function(){
+    jQuery('#aam_roleback').addClass('disabled');
+};
+
+/**
+ * Enable roleback button
+ * 
+ * @returns void
+ * 
+ * @access public
+ */
+AAM.prototype.enableRoleback = function(){
+    jQuery('#aam_roleback').removeClass('disabled');
+};
+
+/**
  * Initialize Control Panel Metabox
  *
  * @returns {void}
@@ -255,49 +307,48 @@ AAM.prototype.compileAjaxPackage = function(action, include_subject) {
 AAM.prototype.initControlPanel = function() {
     var _this = this;
     //Role Back feature
-    jQuery('#aam_roleback').bind('click', function(event) {
+    var roleback = this.createIcon('large', 'roleback').append('Roleback').bind('click', function(event) {
         event.preventDefault();
-        var buttons = {};
-        buttons[aamLocal.labels['Rollback Settings']] = function() {
-            _this.showMetaboxLoader('#control_panel');
-            jQuery.ajax(aamLocal.ajaxurl, {
-                type: 'POST',
-                dataType: 'json',
-                data: _this.compileAjaxPackage('roleback', true),
-                success: function(response) {
-                    if (response.status === 'success') {
-                        _this.retrieveSettings();
-                        if (response.more === 1) {
-                            jQuery('#aam_roleback').show();
-                        } else {
-                            jQuery('#aam_roleback').hide();
+        if (!jQuery(this).hasClass('cpanel-item-disabled')){
+            var buttons = {};
+            buttons[aamLocal.labels['Rollback Settings']] = function() {
+                _this.showMetaboxLoader('#control_panel');
+                jQuery.ajax(aamLocal.ajaxurl, {
+                    type: 'POST',
+                    dataType: 'json',
+                    data: _this.compileAjaxPackage('roleback', true),
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            _this.retrieveSettings();
+                            _this.disableRoleback();
                         }
+                        _this.highlight('#control_panel .inside', response.status);
+                    },
+                    error: function() {
+                        _this.highlight('#control_panel .inside', 'failure');
+                    },
+                    complete: function() {
+                        _this.hideMetaboxLoader('#control_panel');
+                        jQuery("#restore_dialog").dialog("close");
                     }
-                    _this.highlight('#control_panel .inside', response.status);
-                },
-                error: function() {
-                    _this.highlight('#control_panel .inside', 'failure');
-                },
-                complete: function() {
-                    _this.hideMetaboxLoader('#control_panel');
-                    jQuery("#restore_dialog").dialog("close");
-                }
-            });
-        };
-        buttons[aamLocal.labels['Cancel']] = function() {
-            jQuery("#restore_dialog").dialog("close");
-        };
+                });
+            };
+            buttons[aamLocal.labels['Cancel']] = function() {
+                jQuery("#restore_dialog").dialog("close");
+            };
 
-        jQuery("#restore_dialog").dialog({
-            resizable: false,
-            height: 180,
-            modal: true,
-            buttons: buttons
-        });
+            jQuery("#restore_dialog").dialog({
+                resizable: false,
+                height: 180,
+                modal: true,
+                buttons: buttons
+            });
+        }
     });
+    jQuery('#cpanel_major').append(roleback);
 
     //Save the AAM settings
-    jQuery('#aam_save').bind('click', function(event) {
+     var save = this.createIcon('large', 'save').append('Save').bind('click', function(event) {
         event.preventDefault();
         _this.showMetaboxLoader('#control_panel');
 
@@ -305,20 +356,26 @@ AAM.prototype.initControlPanel = function() {
         var data = _this.compileAjaxPackage('save', true);
         //collect data from the form
         //1. Collect Main Menu
-        jQuery('input', '#admin_menu_content').each(function() {
-            data[jQuery(this).attr('name')] = (jQuery(this).prop('checked') ? 1 : 0);
-        });
+        if (jQuery('#admin_menu_content').length){
+            jQuery('input', '#admin_menu_content').each(function() {
+                data[jQuery(this).attr('name')] = (jQuery(this).prop('checked') ? 1 : 0);
+            });
+        }
         //2. Collect Metaboxes & Widgets
-        jQuery('input', '#metabox_list').each(function() {
-            data[jQuery(this).attr('name')] = (jQuery(this).prop('checked') ? 1 : 0);
-        });
-        if (_this.getSubject().type !== 'visitor') {
-            //3. Collect Capabilities
+        if (jQuery('#metabox_content').length){
+            jQuery('input', '#metabox_list').each(function() {
+                data[jQuery(this).attr('name')] = (jQuery(this).prop('checked') ? 1 : 0);
+            });
+        }
+        //3. Collect Capabilities
+        if (jQuery('#capability_content').length){
             var caps = _this.blogTables.capabilities.fnGetData();
             for (var i in caps) {
                 data['aam[capability][' + caps[i][0] + ']'] = caps[i][1];
             }
-            //4. Collect Events
+        }
+        //4. Collect Events
+        if (jQuery('#event_manager_content').length){
             var events = _this.blogTables.eventList.fnGetData();
             for (var j in events) {
                 data['aam[event][' + j + '][event]'] = events[j][0];
@@ -328,9 +385,8 @@ AAM.prototype.initControlPanel = function() {
                 data['aam[event][' + j + '][action_specifier]'] = events[j][4];
             }
         }
-
-        //5. Collect ConfigPress
-        data['aam[configpress]'] = _this.editor.getValue();
+        
+        _this.doAction('aam_before_save', data);
 
         //send the Ajax request to save the data
         jQuery.ajax(aamLocal.ajaxurl, {
@@ -339,7 +395,6 @@ AAM.prototype.initControlPanel = function() {
             data: data,
             success: function(response) {
                 if (response.status === 'success') {
-                    jQuery('#aam_roleback').show();
                     _this.retrieveSettings();
                 }
                 _this.highlight('#control_panel .inside', response.status);
@@ -352,22 +407,44 @@ AAM.prototype.initControlPanel = function() {
             }
         });
     });
-    //Send Email to Us
-    jQuery('#aam_message').bind('click', function(event) {
-        event.preventDefault();
-        var buttons = {};
-        buttons[aamLocal.labels['Send E-mail']] = function() {
-            location.href = 'mailto:support@wpaam.com';
-            jQuery("#message_dialog").dialog("close");
-        };
-        jQuery("#message_dialog").dialog({
-            resizable: false,
-            height: 'auto',
-            width: '20%',
-            modal: true,
-            buttons: buttons
-        });
-    });
+    jQuery('#cpanel_major').append(save);
+    
+    //create minor actions
+    jQuery('#cpanel_minor').append(
+            this.createIcon('medium', 'twitter', 'Follow Us').attr({
+                href: 'https://twitter.com/wpaam',
+                target: '_blank'
+            }).append('Twitter')
+    );
+    jQuery('#cpanel_minor').append(
+            this.createIcon('medium', 'help', 'Support').attr({
+                href: 'http://wpaam.com/support',
+                target: '_blank'
+            }).append('Support')
+    );
+    jQuery('#cpanel_minor').append(
+            this.createIcon('medium', 'message', 'Message').append('Support').bind('click', function(event) {
+                event.preventDefault();
+                var buttons = {};
+                buttons[aamLocal.labels['Send E-mail']] = function() {
+                    location.href = 'mailto:support@wpaam.com';
+                    jQuery("#message_dialog").dialog("close");
+                };
+                jQuery("#message_dialog").dialog({
+                    resizable: false,
+                    height: 'auto',
+                    width: '20%',
+                    modal: true,
+                    buttons: buttons
+                });
+    }));
+    jQuery('#cpanel_minor').append(
+            this.createIcon('medium', 'star', 'Rate Us').attr({
+                href: 'http://wordpress.org/support/view/plugin-reviews/advanced-access-manager',
+                target: '_blank'
+            }).append('Rate')
+    );
+    
     //Init Tooltip
     this.initTooltip('#control_panel');
 };
@@ -391,6 +468,9 @@ AAM.prototype.initControlManager = function() {
 
     //by default load the Role Segment
     this.loadSegment('role');
+    
+    //show the list
+    jQuery('.control-manager-content').css('visibility', 'visible');
 };
 
 /**
@@ -406,10 +486,11 @@ AAM.prototype.initControlManager = function() {
  * @access public
  */
 AAM.prototype.loadSegment = function(segment) {
-    var _this = this;
     //clear all active segments
     jQuery('.control-manager a').each(function() {
-        _this.terminate(this, 'manager-item-' + jQuery(this).attr('segment'));
+        jQuery(this).removeClass(
+                'manager-item-' + jQuery(this).attr('segment') + '-active'
+        );
     });
 
     //hide all segment contents from control manager
@@ -434,7 +515,9 @@ AAM.prototype.loadSegment = function(segment) {
     }
 
     //activate segment icon
-    this.launch(jQuery('.manager-item-' + segment), 'manager-item-' + segment);
+    jQuery('.manager-item-' + segment).addClass(
+            'manager-item-' + segment + '-active'
+    );
 };
 
 /**
@@ -450,7 +533,7 @@ AAM.prototype.loadRoleSegment = function() {
     jQuery('#role_manager_wrap').show();
     if (this.segmentTables.roleList === null) {
         this.segmentTables.roleList = jQuery('#role_list').dataTable({
-            sDom: "<'top'f<'role-top-actions'><'clear'>>t<'footer'ip<'clear'>>",
+            sDom: "<'top'f<'aam-list-top-actions'><'clear'>>t<'footer'ip<'clear'>>",
             bServerSide: true,
             sPaginationType: "full_numbers",
             bAutoWidth: false,
@@ -471,7 +554,7 @@ AAM.prototype.loadRoleSegment = function() {
                 });
                 aoData.push({
                     name: 'sub_action',
-                    value: 'role_list'
+                    value: 'roleList'
                 });
                 aoData.push({
                     name: '_ajax_nonce',
@@ -479,24 +562,57 @@ AAM.prototype.loadRoleSegment = function() {
                 });
             },
             fnInitComplete: function() {
-                var add = jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'role-top-action role-top-action-add',
-                    'tooltip': aamLocal.labels['Add New Role']
-                }).bind('click', function(event) {
+                var add = _this.createIcon(
+                    'medium', 
+                    'add',
+                    aamLocal.labels['Add New Role']
+                ).bind('click', function(event) {
                     event.preventDefault();
-                    _this.launch(jQuery(this), 'role-top-action-add');
+                    _this.activateIcon(this, 'medium');
+                    
+                    //retrieve list of roles dynamically
+                    jQuery('#parent_cap_role').addClass('input-dynamic');
+                    jQuery('#parent_cap_role_holder').show();
+                    //send the request
+                    jQuery.ajax(aamLocal.ajaxurl, {
+                        type: 'POST',
+                        dataType: 'json',
+                        data: _this.compileAjaxPackage('plainRoleList'),
+                        success: function(response) {
+                            //reset selector
+                            jQuery('#parent_cap_role').empty();
+                            jQuery('#parent_cap_role').append(
+                                        jQuery('<option/>', {value : ''})
+                            );
+                            for(var i in response){
+                                jQuery('#parent_cap_role').append(
+                                        jQuery('<option/>', {
+                                            'value' : i
+                                        }).html(response[i].name)
+                                );
+                            }
+                        },
+                        complete: function(){
+                            jQuery('#parent_cap_role').removeClass(
+                                    'input-dynamic'
+                            );
+                        }
+                    });
                     _this.launchAddRoleDialog(this);
                 });
-                jQuery('#role_list_wrapper .role-top-actions').append(add);
-                _this.initTooltip(jQuery('#role_list_wrapper .role-top-actions'));
+                jQuery('#role_list_wrapper .aam-list-top-actions').append(add);
+                _this.initTooltip(
+                        jQuery('#role_list_wrapper .aam-list-top-actions')
+                );
             },
             fnDrawCallback: function() {
-                jQuery('#role_list_wrapper .clear-table-filter').bind('click', function(event) {
-                    event.preventDefault();
-                    jQuery('#role_list_filter input').val('');
-                    _this.segmentTables.roleList.fnFilter('');
-                });
+                jQuery('#role_list_wrapper .clear-table-filter').bind(
+                    'click', function(event) {
+                        event.preventDefault();
+                        jQuery('#role_list_filter input').val('');
+                        _this.segmentTables.roleList.fnFilter('');
+                    }
+                );
             },
             oLanguage: {
                 sSearch: "",
@@ -515,17 +631,16 @@ AAM.prototype.loadRoleSegment = function() {
             ],
             fnRowCallback: function(nRow, aData) { //format data
                 jQuery('td:eq(1)', nRow).html(jQuery('<div/>', {
-                    'class': 'role-actions'
+                    'class': 'aam-list-row-actions'
                 }));  //
                 //add role attribute
                 jQuery(nRow).attr('role', aData[0]);
 
-                jQuery('.role-actions', nRow).empty();
-                jQuery('.role-actions', nRow).append(jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'role-action role-action-manage',
-                    'tooltip': aamLocal.labels['Manage']
-                }).bind('click', {
+                jQuery('.aam-list-row-actions', nRow).append(_this.createIcon(
+                    'small', 
+                    'manage',
+                    aamLocal.labels['Manage']
+                ).bind('click', {
                     role: aData[0]
                 }, function(event) {
                     event.preventDefault();
@@ -537,26 +652,28 @@ AAM.prototype.loadRoleSegment = function() {
                         _this.segmentTables.userList.fnDraw();
                     }
                 }));
-
-                jQuery('.role-actions', nRow).append(jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'role-action role-action-edit',
-                    'tooltip': aamLocal.labels['Edit']
-                }).bind('click', function(event) {
+                
+                jQuery('.aam-list-row-actions', nRow).append(_this.createIcon(
+                    'small', 
+                    'pen',
+                    aamLocal.labels['Edit']
+                ).bind('click', function(event) {
                     event.preventDefault();
-                    _this.launch(jQuery(this), 'role-action-edit');
+                    _this.activateIcon(this, 'small');
                     _this.launchEditRoleDialog(this, aData);
                 }));
 
-                jQuery('.role-actions', nRow).append(jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'role-action role-action-delete',
-                    'tooltip': aamLocal.labels['Delete']
-                }).bind('click', function(event) {
+                jQuery('.aam-list-row-actions', nRow).append(_this.createIcon(
+                    'small', 
+                    'delete',
+                    aamLocal.labels['Delete']
+                ).bind('click', function(event) {
                     event.preventDefault();
+                    var button = this;
                     if ((aData[0] === 'administrator')) {
                         //open the dialog
                         var buttons = {};
+                        _this.activateIcon(this, 'small');
                         buttons[aamLocal.labels['Close']] = function() {
                             jQuery('#delete_admin_role_dialog').dialog("close");
                         };
@@ -565,10 +682,13 @@ AAM.prototype.loadRoleSegment = function() {
                             height: 'auto',
                             width: '25%',
                             modal: true,
-                            buttons: buttons
+                            buttons: buttons,
+                            close: function(){
+                                _this.deactivateIcon(button);
+                            }
                         });
                     } else {
-                        _this.launch(jQuery(this), 'role-action-delete');
+                        _this.activateIcon(this, 'small');
                         _this.launchDeleteRoleDialog(this, aData);
                     }
                 }));
@@ -603,22 +723,15 @@ AAM.prototype.setCurrent = function(subject, nRow, name) {
     var _this = this;
 
     //terminate any active subject
-    jQuery('.user-action-manage-active').each(function() {
-        _this.terminate(jQuery(this), 'user-action-manage');
-    });
-    jQuery('.role-action-manage-active').each(function() {
-        _this.terminate(jQuery(this), 'role-action-manage');
-    });
+    jQuery('.aam-icon-small-active').removeClass('aam-icon-small-active');
+    
     jQuery('.aam-bold').each(function() {
         jQuery(this).removeClass('aam-bold');
     });
 
     //highlight the row
     jQuery('td:eq(0)', nRow).addClass('aam-bold');
-    _this.launch(
-            jQuery('.' + subject + '-action-manage', nRow),
-            subject + '-action-manage'
-            );
+    _this.activateIcon(jQuery('.aam-icon-manage', nRow), 'small');
     jQuery('.current-subject').html(subject + ' ' + name);
 };
 
@@ -655,8 +768,9 @@ AAM.prototype.launchAddRoleDialog = function(button) {
     var buttons = {};
     buttons[aamLocal.labels['Add New Role']] = function() {
         //prepare ajax package
-        var data = _this.compileAjaxPackage('add_role');
+        var data = _this.compileAjaxPackage('addRole');
         data.name = jQuery('#role_name').val();
+        data.inherit = jQuery('#parent_cap_role').val();
 
         //send the request
         jQuery.ajax(aamLocal.ajaxurl, {
@@ -684,7 +798,7 @@ AAM.prototype.launchAddRoleDialog = function(button) {
         title: aamLocal.labels['Add New Role'],
         buttons: buttons,
         close: function() {
-            _this.terminate(jQuery(button), 'role-top-action-add');
+            _this.deactivateIcon(button);
         }
     });
 };
@@ -703,10 +817,11 @@ AAM.prototype.launchEditRoleDialog = function(button, aData) {
     var _this = this;
     //populate the form with data
     jQuery('#role_name').val(aData[2]);
+    jQuery('#parent_cap_role_holder').hide();
     //launch the dialog
     var buttons = {};
     buttons[aamLocal.labels['Save Changes']] = function() {
-        var data = _this.compileAjaxPackage('edit_role');
+        var data = _this.compileAjaxPackage('editRole');
         data.subject = 'role';
         data.subject_id = aData[0];
         data.name = jQuery('#role_name').val();
@@ -741,7 +856,7 @@ AAM.prototype.launchEditRoleDialog = function(button, aData) {
         title: aamLocal.labels['Edit Role'],
         buttons: buttons,
         close: function() {
-            _this.terminate(jQuery(button), 'role-action-edit');
+            _this.deactivateIcon(button);
         }
     });
 };
@@ -766,17 +881,17 @@ AAM.prototype.launchDeleteRoleDialog = function(button, aData) {
         message = message.replace('%s', aData[2]);
         jQuery('#delete_role_dialog .dialog-content').html(message);
     } else {
-        message = aamLocal.labels['Delete Role Message'].replace('%s', aData[1]);
+        message = aamLocal.labels['Delete Role Message'].replace('%s', aData[2]);
         jQuery('#delete_role_dialog .dialog-content').html(message);
     }
 
     var buttons = {};
     buttons[aamLocal.labels['Delete Role']] = function() {
         //prepare ajax package
-        var data = _this.compileAjaxPackage('delete_role');
+        var data = _this.compileAjaxPackage('deleteRole');
         data.subject = 'role';
         data.subject_id = aData[0];
-        data.delete_users = aData[1];
+        data.delete_users = parseInt(aData[1]);
         //send the request
         jQuery.ajax(aamLocal.ajaxurl, {
             type: 'POST',
@@ -813,7 +928,7 @@ AAM.prototype.launchDeleteRoleDialog = function(button, aData) {
         title: aamLocal.labels['Delete Role'],
         buttons: buttons,
         close: function() {
-            _this.terminate(jQuery(button), 'role-action-delete');
+            _this.deactivateIcon(button);
         }
     });
 };
@@ -830,7 +945,7 @@ AAM.prototype.loadUserSegment = function() {
     jQuery('#user_manager_wrap').show();
     if (this.segmentTables.userList === null) {
         this.segmentTables.userList = jQuery('#user_list').dataTable({
-            sDom: "<'top'f<'user-top-actions'><'clear'>>t<'footer'ip<'clear'>>",
+            sDom: "<'top'f<'aam-list-top-actions'><'clear'>>t<'footer'ip<'clear'>>",
             bServerSide: true,
             sPaginationType: "full_numbers",
             bAutoWidth: false,
@@ -852,7 +967,7 @@ AAM.prototype.loadUserSegment = function() {
                 });
                 aoData.push({
                     name: 'sub_action',
-                    value: 'user_list'
+                    value: 'userList'
                 });
                 aoData.push({
                     name: '_ajax_nonce',
@@ -866,48 +981,49 @@ AAM.prototype.loadUserSegment = function() {
             aoColumnDefs: [
                 {
                     bVisible: false,
-                    aTargets: [0, 1, 4]
+                    aTargets: [0, 1, 4, 5]
                 }
             ],
             fnInitComplete: function() {
-                var add = jQuery('<a/>', {
-                    'href': aamLocal.addUserURI,
-                    'target': '_blank',
-                    'class': 'user-top-action user-top-action-add',
-                    'tooltip': aamLocal.labels['Add User']
+                var add = _this.createIcon(
+                    'medium', 
+                    'add'
+                ).attr({
+                    href: aamLocal.addUserURI,
+                    target: '_blank'
                 });
-
-                var filter = jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'user-top-action user-top-action-filter',
-                    'tooltip': aamLocal.labels['Filter Users']
-                }).bind('click', function(event) {
+                
+                var filter = _this.createIcon(
+                    'medium', 
+                    'filter'
+                ).bind('click', function(event) {
                     event.preventDefault();
-                    _this.launch(jQuery(this), 'user-top-action-filter');
+                    _this.activateIcon(this, 'medium');
                     _this.launchFilterUserDialog(this);
                 });
-
-                var refresh = jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'user-top-action user-top-action-refresh',
-                    'tooltip': aamLocal.labels['Refresh List']
-                }).bind('click', function(event) {
+                
+                var refresh = _this.createIcon(
+                    'medium', 
+                    'refresh'
+                ).bind('click', function(event) {
                     event.preventDefault();
                     _this.segmentTables.userList.fnDraw();
                 });
 
-                jQuery('#user_list_wrapper .user-top-actions').append(filter);
-                jQuery('#user_list_wrapper .user-top-actions').append(add);
-                jQuery('#user_list_wrapper .user-top-actions').append(refresh);
-                _this.initTooltip(jQuery('#user_list_wrapper .user-top-actions'));
+                jQuery('#user_list_wrapper .aam-list-top-actions').append(filter);
+                jQuery('#user_list_wrapper .aam-list-top-actions').append(add);
+                jQuery('#user_list_wrapper .aam-list-top-actions').append(refresh);
+                _this.initTooltip(jQuery('#user_list_wrapper .aam-list-top-actions'));
             },
             fnDrawCallback: function() {
-                jQuery('#user_list_wrapper .clear-table-filter').bind('click', function(event) {
-                    event.preventDefault();
-                    jQuery('#user_list_filter input').val('');
-                    _this.userRoleFilter = '';
-                    _this.segmentTables.userList.fnFilter('');
-                });
+                jQuery('#user_list_wrapper .clear-table-filter').bind(
+                    'click', function(event) {
+                        event.preventDefault();
+                        jQuery('#user_list_filter input').val('');
+                        _this.userRoleFilter = '';
+                        _this.segmentTables.userList.fnFilter('');
+                    }
+                );
             },
             oLanguage: {
                 sSearch: "",
@@ -922,46 +1038,61 @@ AAM.prototype.loadUserSegment = function() {
                 //add User attribute
                 jQuery(nRow).attr('user', aData[0]);
                 jQuery('td:eq(1)', nRow).html(jQuery('<div/>', {
-                    'class': 'user-actions'
+                    'class': 'aam-list-row-actions'
                 }));
 
-                jQuery('.user-actions', nRow).append(jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'user-action user-action-manage',
-                    'tooltip': aamLocal.labels['Manager']
-                }).bind('click', function(event) {
-                    event.preventDefault();
-                    _this.setSubject('user', aData[0]);
-                    _this.retrieveSettings();
-                    _this.setCurrent('user', nRow, aData[2]);
-                }));
+                if (parseInt(aData[5]) === 1){
+                    jQuery('.aam-list-row-actions', nRow).append(_this.createIcon(
+                        'small', 
+                        'manage',
+                        aamLocal.labels['Manage']
+                    ).bind('click', function(event) {
+                            event.preventDefault();
+                            _this.setSubject('user', aData[0]);
+                            _this.retrieveSettings();
+                            _this.setCurrent('user', nRow, aData[2]);
+                    }));
 
-                jQuery('.user-actions', nRow).append(jQuery('<a/>', {
-                    'href': aamLocal.editUserURI + '?user_id=' + aData[0],
-                    'target': '_blank',
-                    'class': 'user-action user-action-edit',
-                    'tooltip': aamLocal.labels['Edit']
-                }));
+                    jQuery('.aam-list-row-actions', nRow).append(_this.createIcon(
+                        'small', 
+                        'edit-user',
+                        aamLocal.labels['Edit']
+                    ).attr({
+                        href: aamLocal.editUserURI + '?user_id=' + aData[0],
+                        target: '_blank'
+                    }));
+                
+                    var block = _this.createIcon(
+                        'small', 
+                        'block',
+                        aamLocal.labels['Block']
+                    );
+                    if (parseInt(aData[4]) === 1){
+                        _this.activateIcon(block, 'small');
+                    }
+                    block.bind('click', function(event) {
+                            event.preventDefault();
+                            _this.blockUser(this, aData);
+                    });
+                    jQuery('.aam-list-row-actions', nRow).append(block);
 
-                var status = (aData[4] === '1' ? 'user-action-block-active' : 'user-action-block');
-                jQuery('.user-actions', nRow).append(jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'user-action ' + status,
-                    'tooltip': aamLocal.labels['Block']
-                }).bind('click', function(event) {
-                    event.preventDefault();
-                    _this.blockUser(this, aData);
-                }));
-
-                jQuery('.user-actions', nRow).append(jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'user-action user-action-delete',
-                    'tooltip': aamLocal.labels['Delete']
-                }).bind('click', function(event) {
-                    event.preventDefault();
-                    _this.launch(jQuery(this), 'user-action-delete');
-                    _this.deleteUser(this, aData);
-                }));
+                    jQuery('.aam-list-row-actions', nRow).append(_this.createIcon(
+                        'small', 
+                        'delete',
+                        aamLocal.labels['Delete']
+                    ).bind('click', function(event) {
+                            event.preventDefault();
+                            _this.deleteUser(this, aData);
+                    }));
+                } else {
+                    jQuery('.aam-list-row-actions', nRow).append(jQuery('<a/>', {
+                        'href': '#',
+                        'class': 'user-action-locked',
+                        'aam-tooltip': aamLocal.labels['Actions Locked']
+                    }).bind('click', function(event) {
+                        event.preventDefault();
+                    }));
+                }
 
                 //set active
                 if (_this.getSubject().type === 'user'
@@ -990,7 +1121,7 @@ AAM.prototype.loadUserSegment = function() {
  */
 AAM.prototype.blockUser = function(button, aData) {
     var _this = this;
-    var data = this.compileAjaxPackage('block_user');
+    var data = this.compileAjaxPackage('blockUser');
     data.subject = 'user';
     data.subject_id = aData[0];
     //send the request
@@ -1001,9 +1132,9 @@ AAM.prototype.blockUser = function(button, aData) {
         success: function(response) {
             _this.highlight('#control_manager .inside', response.status);
             if (response.user_status === 1) {
-                _this.launch(jQuery(button), 'user-action-block');
+                _this.activateIcon(button, 'small');
             } else {
-                _this.terminate(jQuery(button), 'user-action-block');
+                _this.deactivateIcon(button);
             }
         },
         error: function() {
@@ -1030,7 +1161,7 @@ AAM.prototype.deleteUser = function(button, aData) {
             );
     var buttons = {};
     buttons[aamLocal.labels['Delete']] = function() {
-        var data = _this.compileAjaxPackage('delete_user');
+        var data = _this.compileAjaxPackage('deleteUser');
         data.subject = 'user';
         data.subject_id = aData[0];
         //send request
@@ -1065,7 +1196,7 @@ AAM.prototype.deleteUser = function(button, aData) {
         modal: true,
         buttons: buttons,
         close: function() {
-            _this.terminate(jQuery(button), 'user-action-delete');
+            _this.deactivateIcon(button);
         }
     });
 };
@@ -1105,7 +1236,7 @@ AAM.prototype.launchFilterUserDialog = function(button) {
                 });
                 aoData.push({
                     name: 'sub_action',
-                    value: 'role_list'
+                    value: 'roleList'
                 });
                 aoData.push({
                     name: '_ajax_nonce',
@@ -1113,11 +1244,13 @@ AAM.prototype.launchFilterUserDialog = function(button) {
                 });
             },
             fnDrawCallback: function() {
-                jQuery('#filter_role_list_wrapper .clear-table-filter').bind('click', function(event) {
-                    event.preventDefault();
-                    jQuery('#filter_role_list_filter input').val('');
-                    _this.blogTables.filterRoleList.fnFilter('');
-                });
+                jQuery('#filter_role_list_wrapper .clear-table-filter').bind(
+                    'click', function(event) {
+                        event.preventDefault();
+                        jQuery('#filter_role_list_filter input').val('');
+                        _this.blogTables.filterRoleList.fnFilter('');
+                    }
+                );
                 _this.initTooltip('#filter_role_list_wrapper');
             },
             oLanguage: {
@@ -1137,15 +1270,14 @@ AAM.prototype.launchFilterUserDialog = function(button) {
             ],
             fnRowCallback: function(nRow, aData) { //format data
                 jQuery('td:eq(1)', nRow).html(jQuery('<div/>', {
-                    'class': 'user-actions'
+                    'class': 'aam-list-row-actions'
                 }));
 
-                jQuery('.user-actions', nRow).empty();
-                jQuery('.user-actions', nRow).append(jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'user-action user-action-select',
-                    'tooltip': 'Select Role'
-                }).bind('click', function(event) {
+                jQuery('.aam-list-row-actions', nRow).append(_this.createIcon(
+                        'small', 
+                        'select',
+                        aamLocal.labels['Select Role']
+                ).bind('click', function(event) {
                     event.preventDefault();
                     _this.userRoleFilter = aData[0];
                     _this.segmentTables.userList.fnDraw();
@@ -1171,7 +1303,7 @@ AAM.prototype.launchFilterUserDialog = function(button) {
         modal: true,
         buttons: buttons,
         close: function() {
-            _this.terminate(jQuery(button), 'user-top-action-filter');
+            _this.deactivateIcon(button);
         }
     });
 };
@@ -1203,6 +1335,11 @@ AAM.prototype.retrieveSettings = function() {
     jQuery('.aam-main-loader').show();
     jQuery('.aam-main-content').empty();
 
+    //reset blog Tables first
+    for (var i in this.blogTables) {
+        this.blogTables[i] = null;
+    }
+
     jQuery.ajax(aamLocal.siteURI, {
         type: 'POST',
         dataType: 'html',
@@ -1214,8 +1351,8 @@ AAM.prototype.retrieveSettings = function() {
         },
         success: function(response) {
             jQuery('.aam-main-content').html(response);
-            _this.initSettings();
             _this.checkRoleback();
+            _this.initSettings();
         },
         complete: function() {
             jQuery('.aam-main-loader').hide();
@@ -1234,12 +1371,12 @@ AAM.prototype.checkRoleback = function() {
     jQuery.ajax(aamLocal.ajaxurl, {
         type: 'POST',
         dataType: 'json',
-        data: _this.compileAjaxPackage('check_roleback', true),
+        data: _this.compileAjaxPackage('hasRoleback', true),
         success: function(response) {
-            if (response.status === 1) {
-                jQuery('#aam_roleback').show();
+            if (parseInt(response.status) === 0) {
+                _this.disableRoleback();
             } else {
-                jQuery('#aam_roleback').hide();
+                _this.enableRoleback();
             }
         },
         complete: function() {
@@ -1256,48 +1393,49 @@ AAM.prototype.checkRoleback = function() {
  * @access public
  */
 AAM.prototype.initSettings = function() {
+    var _this = this;
+
     //remove all dialogs to make sure that there are no confusions
     jQuery('.ui-dialog').remove();
 
     //init Settings Menu
     jQuery('.feature-list .feature-item').each(function() {
         jQuery(this).bind('click', function() {
+            //feature activation hook
+            _this.doAction(
+                    'aam_feature_activation',
+                    {'feature': jQuery(this).attr('feature')}
+            );
+
             jQuery('.feature-list .feature-item').removeClass(
                     'feature-item-active'
-                    );
+            );
             jQuery(this).addClass('feature-item-active');
             jQuery('.feature-content .feature-content-container').hide();
             jQuery('#' + jQuery(this).attr('feature') + '_content').show();
-            //hide help content
-            jQuery('.aam-help > span').hide();
-            jQuery('#feature_help_' + jQuery(this).attr('feature')).css(
-                    'display', 'table-cell'
-                    );
         });
     });
 
-    this.initMenuTab();
-    this.initMetaboxTab();
-    this.initCapabilityTab();
-    this.initPostTab();
-    this.initEventTab();
-    this.initConfigPressTab();
+    //init default tabs
+    if (jQuery('#admin_menu_content').length){
+        this.initMenuTab();
+    }
+    if (jQuery('#metabox_content').length){
+        this.initMetaboxTab();
+    }
+    if (jQuery('#capability_content').length){
+        this.initCapabilityTab();
+    }
+    if (jQuery('#post_access_content').length){
+        this.initPostTab();
+    }
+    if (jQuery('#event_manager_content').length){
+        this.initEventTab();
+    }
 
     this.doAction('aam_init_features');
 
     jQuery('.feature-list .feature-item:eq(0)').trigger('click');
-};
-
-/**
- * Initialize ConfigPress Feature
- *
- * @returns {void}
- *
- * @access public
- */
-AAM.prototype.initConfigPressTab = function() {
-    this.editor = CodeMirror.fromTextArea(document.getElementById("configpress"), {});
-    this.initTooltip('#configpress_content');
 };
 
 /**
@@ -1315,7 +1453,7 @@ AAM.prototype.initCapabilityTab = function() {
     var userDefault = true;
 
     this.blogTables.capabilities = jQuery('#capability_list').dataTable({
-        sDom: "<'top'lf<'capability-top-actions'><'clear'>>t<'footer'ip<'clear'>>",
+        sDom: "<'top'lf<'aam-list-top-actions'><'clear'>>t<'footer'ip<'clear'>>",
         sPaginationType: "full_numbers",
         bAutoWidth: false,
         bSort: false,
@@ -1345,7 +1483,7 @@ AAM.prototype.initCapabilityTab = function() {
             });
             aoData.push({
                 name: 'sub_action',
-                value: 'load_capabilities'
+                value: 'loadCapabilities'
             });
             aoData.push({
                 name: '_ajax_nonce',
@@ -1361,15 +1499,15 @@ AAM.prototype.initCapabilityTab = function() {
             });
         },
         fnInitComplete: function() {
-            var a = jQuery('#capability_list_wrapper .capability-top-actions');
+            var a = jQuery('#capability_list_wrapper .aam-list-top-actions');
 
-            var filter = jQuery('<a/>', {
-                'href': '#',
-                'class': 'capability-top-action capability-top-action-filter',
-                'tooltip': aamLocal.labels['Filter Capabilities by Category']
-            }).bind('click', function(event) {
+            var filter = _this.createIcon(
+                    'medium', 
+                    'filter', 
+                    aamLocal.labels['Filter Capabilities by Category']
+            ).bind('click', function(event) {
                 event.preventDefault();
-                _this.launch(jQuery(this), 'capability-top-action-filter');
+                _this.activateIcon(this, 'medium');
                 _this.launchCapabilityFilterDialog(this);
             });
             jQuery(a).append(filter);
@@ -1377,39 +1515,36 @@ AAM.prototype.initCapabilityTab = function() {
             //do not allow for user to add any new capabilities or copy from
             //existing role
             if (_this.getSubject().type !== 'user') {
-                var copy = jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'capability-top-action capability-top-action-copy',
-                    'tooltip': aamLocal.labels['Inherit Capabilities']
-                }).bind('click', function(event) {
+                var copy = _this.createIcon(
+                    'medium', 
+                    'copy', 
+                    aamLocal.labels['Inherit Capabilities']
+                ).bind('click', function(event) {
                     event.preventDefault();
-                    _this.launch(jQuery(this), 'capability-top-action-copy');
                     _this.launchRoleCopyDialog(this);
                 });
-
-                var add = jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'capability-top-action capability-top-action-add',
-                    'tooltip': aamLocal.labels['Add New Capability']
-                }).bind('click', function(event) {
+                
+                jQuery(a).append(copy);
+                var add = _this.createIcon(
+                    'medium', 
+                    'add', 
+                    aamLocal.labels['Add New Capability']
+                ).bind('click', function(event) {
                     event.preventDefault();
-                    _this.launch(jQuery(this), 'capability-top-action-add');
                     _this.launchAddCapabilityDialog(this);
                 });
-
-                jQuery(a).append(copy);
                 jQuery(a).append(add);
             } else if (userDefault === 0) {
                 //add Restore Default Capability button
-                var restore = jQuery('<a/>', {
-                    'href': '#',
-                    'class': 'capability-top-action capability-top-action-restore',
-                    'tooltip': aamLocal.labels['Restore Default Capabilities']
-                }).bind('click', function(event) {
+                var restore = _this.createIcon(
+                    'medium', 
+                    'roleback', 
+                    aamLocal.labels['Restore Default Capabilities']
+                ).bind('click', function(event) {
                     event.preventDefault();
-                    var data = _this.compileAjaxPackage('restore_capability', true);
+                    var data = _this.compileAjaxPackage('restoreCapabilities', true);
                     //show indicator that is running
-                    jQuery(this).addClass('capability-top-action-restore-running');
+                    _this.loadingIcon(jQuery(this), 'medium');
                     jQuery.ajax(aamLocal.ajaxurl, {
                         type: 'POST',
                         dataType: 'json',
@@ -1426,7 +1561,6 @@ AAM.prototype.initCapabilityTab = function() {
                         }
                     });
                 });
-
                 jQuery(a).append(restore);
             }
 
@@ -1463,21 +1597,22 @@ AAM.prototype.initCapabilityTab = function() {
             jQuery(actions).append(jQuery('<a/>', {
                 'href': '#',
                 'class': 'capability-action capability-action-delete',
-                'tooltip': aamLocal.labels['Delete']
+                'aam-tooltip': aamLocal.labels['Delete']
             }).bind('click', function(event) {
                 event.preventDefault();
-                _this.launch(jQuery(this), 'capability-action-delete');
                 _this.launchDeleteCapabilityDialog(this, aData, nRow);
             }));
             _this.initTooltip(nRow);
         },
         fnDrawCallback: function() {
-            jQuery('#capability_list_wrapper .clear-table-filter').bind('click', function(event) {
-                event.preventDefault();
-                jQuery('#capability_list_wrapper input').val('');
-                _this.blogTables.capabilities.fnFilter('');
-                _this.blogTables.capabilities.fnFilter('', 2);
-            });
+            jQuery('#capability_list_wrapper .clear-table-filter').bind(
+                    'click', function(event) {
+                        event.preventDefault();
+                        jQuery('#capability_list_wrapper input').val('');
+                        _this.blogTables.capabilities.fnFilter('');
+                        _this.blogTables.capabilities.fnFilter('', 2);
+                    }
+            );
         },
         fnInfoCallback: function(oSettings, iStart, iEnd, iMax, iTotal, sPre) {
             return (iMax !== iTotal ? _this.clearFilterIndicator() : '');
@@ -1500,6 +1635,7 @@ AAM.prototype.initCapabilityTab = function() {
  *
  * @param {Object} button
  * @param {Object} aData
+ * @param {Object} nRow
  *
  * @returns {void}
  *
@@ -1509,10 +1645,11 @@ AAM.prototype.launchDeleteCapabilityDialog = function(button, aData, nRow) {
     var _this = this;
     jQuery('#delete_capability .dialog-content').html(
             aamLocal.labels['Delete Capability Message'].replace('%s', aData[3])
-            );
+    );
+
     var buttons = {};
     buttons[aamLocal.labels['Delete Capability']] = function() {
-        var data = _this.compileAjaxPackage('delete_capability');
+        var data = _this.compileAjaxPackage('deleteCapability');
         data.capability = aData[0];
         jQuery.ajax(aamLocal.ajaxurl, {
             type: 'POST',
@@ -1541,7 +1678,6 @@ AAM.prototype.launchDeleteCapabilityDialog = function(button, aData, nRow) {
         title: aamLocal.labels['Delete Capability'],
         buttons: buttons,
         close: function() {
-            _this.terminate(jQuery(button), 'capability-action-delete');
         }
     });
 };
@@ -1565,11 +1701,11 @@ AAM.prototype.launchCapabilityFilterDialog = function(button) {
         bSort: false,
         bDestroy: true,
         fnRowCallback: function(nRow, aData) {
-            jQuery('.capability-action-select', nRow).bind('click', function(event) {
+            jQuery('.aam-icon-select', nRow).bind('click', function(event) {
                 event.preventDefault();
                 _this.blogTables.capabilities.fnFilter(
                         aData[0].replace('&amp;', '&'), 2
-                        );
+                );
                 jQuery('#filter_capability_dialog').dialog('close');
             });
         }
@@ -1585,7 +1721,7 @@ AAM.prototype.launchCapabilityFilterDialog = function(button) {
         modal: true,
         buttons: buttons,
         close: function() {
-            _this.terminate(jQuery(button), 'capability-top-action-filter');
+            _this.deactivateIcon(button);
         }
     });
 };
@@ -1626,7 +1762,7 @@ AAM.prototype.launchRoleCopyDialog = function(button) {
             });
             aoData.push({
                 name: 'sub_action',
-                value: 'role_list'
+                value: 'roleList'
             });
             aoData.push({
                 name: '_ajax_nonce',
@@ -1634,11 +1770,13 @@ AAM.prototype.launchRoleCopyDialog = function(button) {
             });
         },
         fnDrawCallback: function() {
-            jQuery('#copy_role_list_wrapper .clear-table-filter').bind('click', function(event) {
-                event.preventDefault();
-                jQuery('#copy_role_list_filter input').val('');
-                _this.blogTables.inheritRole.fnFilter('');
-            });
+            jQuery('#copy_role_list_wrapper .clear-table-filter').bind(
+                'click', function(event) {
+                    event.preventDefault();
+                    jQuery('#copy_role_list_filter input').val('');
+                    _this.blogTables.inheritRole.fnFilter('');
+                }
+            );
         },
         oLanguage: {
             sSearch: "",
@@ -1657,18 +1795,17 @@ AAM.prototype.launchRoleCopyDialog = function(button) {
         ],
         fnRowCallback: function(nRow, aData, iDisplayIndex) { //format data
             jQuery('td:eq(1)', nRow).html(jQuery('<div/>', {
-                'class': 'user-actions'
+                'class': 'aam-list-row-actions'
             }));  //
-
-            jQuery('.user-actions', nRow).empty();
-            jQuery('.user-actions', nRow).append(jQuery('<a/>', {
-                'href': '#',
-                'class': 'user-action user-action-select',
-                'title': aamLocal.labels['Select Role']
-            }).bind('click', function(event) {
+            jQuery('.aam-list-row-actions', nRow).empty();
+            jQuery('.aam-list-row-actions', nRow).append(_this.createIcon(
+                    'small', 
+                    'select',
+                    aamLocal.labels['Select Role']  
+            ).bind('click', function(event) {
                 event.preventDefault();
                 _this.showMetaboxLoader('#copy_role_dialog');
-                var data = _this.compileAjaxPackage('role_capabilities');
+                var data = _this.compileAjaxPackage('roleCapabilities');
                 data.subject = 'role';
                 data.subject_id = aData[0];
                 jQuery.ajax(aamLocal.ajaxurl, {
@@ -1722,7 +1859,7 @@ AAM.prototype.launchRoleCopyDialog = function(button) {
         modal: true,
         buttons: buttons,
         close: function() {
-            _this.terminate(jQuery(button), 'capability-top-action-copy');
+            _this.deactivateIcon(button);
         }
     });
 };
@@ -1746,8 +1883,10 @@ AAM.prototype.launchAddCapabilityDialog = function(button) {
         var capability = jQuery.trim(jQuery('#capability_name').val());
         if (capability) {
             _this.showMetaboxLoader('#capability_form_dialog');
-            var data = _this.compileAjaxPackage('add_capability');
+            var data = _this.compileAjaxPackage('addCapability');
             data.capability = capability;
+            data.unfiltered = (jQuery('#capability_unfiltered').attr('checked') ? 1 : 0);
+
             jQuery.ajax(aamLocal.ajaxurl, {
                 type: 'POST',
                 dataType: 'json',
@@ -1785,11 +1924,11 @@ AAM.prototype.launchAddCapabilityDialog = function(button) {
     jQuery('#capability_form_dialog').dialog({
         resizable: false,
         height: 'auto',
-        width: '30%',
+        width: 'auto',
         modal: true,
         buttons: buttons,
         close: function() {
-            _this.terminate(jQuery(button), 'capability-top-action-add');
+            _this.deactivateIcon(button);
         }
     });
 };
@@ -1802,26 +1941,18 @@ AAM.prototype.launchAddCapabilityDialog = function(button) {
  * @access public
  */
 AAM.prototype.initMenuTab = function() {
-    var _this = this;
     this.initMenuAccordion(false);
-
-    jQuery('.menu-item-action-restrict').each(function() {
-        jQuery(this).bind('click', function(event) {
-            event.preventDefault();
-            _this.launch(jQuery(this), 'menu-item-action-restrict');
-        });
-    });
 
     jQuery('.whole_menu').each(function() {
         jQuery(this).bind('change', function() {
             if (jQuery(this).attr('checked')) {
                 jQuery('input[type="checkbox"]', '#submenu_' + jQuery(this).attr('id')).attr(
                         'checked', 'checked'
-                        );
+                );
             } else {
                 jQuery('input[type="checkbox"]', '#submenu_' + jQuery(this).attr('id')).removeAttr(
                         'checked'
-                        );
+                );
             }
         });
     });
@@ -1865,13 +1996,14 @@ AAM.prototype.initMenuAccordion = function() {
 AAM.prototype.initMetaboxTab = function() {
     var _this = this;
 
-    jQuery('.metabox-top-action-add').bind('click', function(event) {
+    jQuery('#retrieve_url').bind('click', function(event) {
         event.preventDefault();
+        var icon = this;
         var link = jQuery.trim(jQuery('#metabox_link').val());
-
         if (link) {
+            _this.loadingIcon(icon, 'medium');
             //init metaboxes
-            var data = _this.compileAjaxPackage('init_link');
+            var data = _this.compileAjaxPackage('initLink');
             data.link = link;
 
             //send the request
@@ -1888,6 +2020,9 @@ AAM.prototype.initMetaboxTab = function() {
                 },
                 error: function() {
                     _this.highlight('#metabox_content', 'failure');
+                },
+                complete: function(){
+                    _this.removeLoadingIcon(icon);
                 }
             });
         } else {
@@ -1896,7 +2031,7 @@ AAM.prototype.initMetaboxTab = function() {
 
     });
 
-    jQuery('.metabox-top-action-refresh').bind('click', function(event) {
+    jQuery('#refresh_metaboxes').bind('click', function(event) {
         event.preventDefault();
         _this.loadMetaboxes(1);
     });
@@ -1918,7 +2053,7 @@ AAM.prototype.initMetaboxTab = function() {
 AAM.prototype.loadMetaboxes = function(refresh) {
     var _this = this;
     //init metaboxes
-    var data = this.compileAjaxPackage('load_metaboxes', true);
+    var data = this.compileAjaxPackage('loadMetaboxes', true);
     data.refresh = refresh;
     //show loader and reset the metabox list holder
     jQuery('#metabox_list_container').empty();
@@ -1926,10 +2061,10 @@ AAM.prototype.loadMetaboxes = function(refresh) {
     //send the request
     jQuery.ajax(aamLocal.ajaxurl, {
         type: 'POST',
-        dataType: 'json',
+        dataType: 'html',
         data: data,
         success: function(response) {
-            jQuery('#metabox_list_container').html(response.content);
+            jQuery('#metabox_list_container').html(response);
             jQuery('#metabox_list').accordion({
                 collapsible: true,
                 header: 'h4',
@@ -1976,7 +2111,7 @@ AAM.prototype.initEventTab = function() {
     });
 
     this.blogTables.eventList = jQuery('#event_list').dataTable({
-        sDom: "<'event-top-actions'><'clear'>t<'footer'p<'clear'>>",
+        sDom: "<'aam-list-top-actions'><'clear'>t<'footer'p<'clear'>>",
         //bProcessing : false,
         sPaginationType: "full_numbers",
         bAutoWidth: false,
@@ -1998,7 +2133,7 @@ AAM.prototype.initEventTab = function() {
             });
             aoData.push({
                 name: 'sub_action',
-                value: 'event_list'
+                value: 'eventList'
             });
             aoData.push({
                 name: '_ajax_nonce',
@@ -2020,17 +2155,18 @@ AAM.prototype.initEventTab = function() {
             }
         ],
         fnInitComplete: function() {
-            var filter = jQuery('<a/>', {
-                'href': '#',
-                'class': 'event-top-action event-top-action-add',
-                'tooltip': aamLocal.labels['Add Event']
-            }).bind('click', function(event) {
+            var add = _this.createIcon(
+                    'medium', 
+                    'add',
+                    aamLocal.labels['Add Event']
+            ).bind('click', function(event) {
                 event.preventDefault();
-                _this.launch(jQuery(this), 'event-top-action-add');
                 _this.launchManageEventDialog(this, null);
             });
-            jQuery('#event_list_wrapper .event-top-actions').append(filter);
-            _this.initTooltip(jQuery('#event_list_wrapper .event-top-actions'));
+            jQuery('#event_list_wrapper .aam-list-top-actions').append(add);
+            _this.initTooltip(
+                    jQuery('#event_list_wrapper .aam-list-top-actions')
+            );
         },
         fnDrawCallback: function() {
             jQuery('#event_list_wrapper .clear-table-filter').bind('click', function(event) {
@@ -2050,19 +2186,17 @@ AAM.prototype.initEventTab = function() {
             jQuery('.event-actions', nRow).append(jQuery('<a/>', {
                 'href': '#',
                 'class': 'event-action event-action-edit',
-                'tooltip': aamLocal.labels['Edit Event']
+                'aam-tooltip': aamLocal.labels['Edit Event']
             }).bind('click', function(event) {
                 event.preventDefault();
-                _this.launch(jQuery(this), 'event-action-edit');
                 _this.launchManageEventDialog(this, aData, nRow);
             }));
             jQuery('.event-actions', nRow).append(jQuery('<a/>', {
                 'href': '#',
                 'class': 'event-action event-action-delete',
-                'tooltip': aamLocal.labels['Delete Event']
+                'aam-tooltip': aamLocal.labels['Delete Event']
             }).bind('click', function(event) {
                 event.preventDefault();
-                _this.launch(jQuery(this), 'event-action-delete');
                 _this.launchDeleteEventDialog(this, aData, nRow);
             }));
 
@@ -2146,10 +2280,6 @@ AAM.prototype.launchManageEventDialog = function(button, aData, nRow) {
         modal: true,
         buttons: buttons,
         close: function() {
-            _this.terminate(
-                    jQuery(button),
-                    (aData ? 'event-action-edit' : 'event-top-action-add')
-                    );
         }
     });
 };
@@ -2203,7 +2333,6 @@ AAM.prototype.launchDeleteEventDialog = function(button, aData, nRow) {
         title: aamLocal.labels['Delete Event'],
         buttons: buttons,
         close: function() {
-            _this.terminate(jQuery(button), 'event-action-delete');
         }
     });
 };
@@ -2235,7 +2364,7 @@ AAM.prototype.initPostTab = function() {
     });
 
     this.blogTables.postList = jQuery('#post_list').dataTable({
-        sDom: "<'top'lf<'post-top-actions'><'clear'>><'post-breadcrumb'>t<'footer'ip<'clear'>>",
+        sDom: "<'top'lf<'aam-list-top-actions'><'clear'>><'post-breadcrumb'>t<'footer'ip<'clear'>>",
         sPaginationType: "full_numbers",
         bAutoWidth: false,
         bSort: false,
@@ -2257,11 +2386,19 @@ AAM.prototype.initPostTab = function() {
             });
             aoData.push({
                 name: 'sub_action',
-                value: 'post_list'
+                value: 'postList'
             });
             aoData.push({
                 name: '_ajax_nonce',
                 value: aamLocal.nonce
+            });
+            aoData.push({
+                name: 'subject',
+                value: _this.getSubject().type
+            });
+            aoData.push({
+                name: 'subject_id',
+                value: _this.getSubject().id
             });
             aoData.push({
                 name: 'term',
@@ -2269,27 +2406,26 @@ AAM.prototype.initPostTab = function() {
             });
         },
         fnInitComplete: function() {
-            var a = jQuery('#post_list_wrapper .post-top-actions');
-
-            var filter = jQuery('<a/>', {
-                'href': '#',
-                'class': 'post-top-action post-top-action-filter',
-                'tooltip': aamLocal.labels['Filter Posts by Post Type']
-            }).bind('click', function(event) {
+            var a = jQuery('#post_list_wrapper .aam-list-top-actions');
+            
+            var filter = _this.createIcon(
+                    'medium', 
+                    'filter', 
+                    aamLocal.labels['Filter Posts by Post Type']
+            ).bind('click', function(event) {
                 event.preventDefault();
-                _this.launch(jQuery(this), 'post-top-action-filter');
                 _this.launchFilterPostDialog(this);
             });
+            jQuery(a).append(filter);
 
-            var refresh = jQuery('<a/>', {
-                'href': '#',
-                'class': 'post-top-action post-top-action-refresh',
-                'tooltip': aamLocal.labels['Refresh List']
-            }).bind('click', function(event) {
+            var refresh = _this.createIcon(
+                    'medium', 
+                    'refresh', 
+                    aamLocal.labels['Refresh List']
+            ).bind('click', function(event) {
                 event.preventDefault();
                 _this.blogTables.postList.fnDraw();
             });
-            jQuery(a).append(filter);
             jQuery(a).append(refresh);
             _this.initTooltip(a);
         },
@@ -2306,50 +2442,86 @@ AAM.prototype.initPostTab = function() {
         aoColumnDefs: [
             {
                 bVisible: false,
-                aTargets: [0, 1, 2]
+                aTargets: [0, 1, 2, 6]
             }
         ],
-        fnRowCallback: function(nRow, aData, iDisplayIndex) { //format data
+        fnRowCallback: function(nRow, aData) { //format data
             jQuery('td:eq(0)', nRow).html(jQuery('<a/>', {
                 'href': "#",
                 'class': "post-type-post"
             }).bind('click', function(event) {
                 event.preventDefault();
-                var button = jQuery('.post-action-manage', nRow);
-                _this.launch(button, 'post-action-manage');
+                var button = jQuery('.aam-icon-manage', nRow);
                 _this.launchManageAccessDialog(button, nRow, aData, 'post');
             }).text(aData[3]));
+
             jQuery('td:eq(2)', nRow).append(jQuery('<div/>', {
-                'class': 'post-actions'
+                'class': 'aam-list-row-actions'
             }));
-
-            jQuery('.post-actions', nRow).append(jQuery('<a/>', {
-                'href': aData[2].replace('&amp;', '&'),
-                'class': 'post-action post-action-edit',
-                'target': '_blank',
-                'tooltip': aamLocal.labels['Edit']
-            }));
-
-            jQuery('.post-actions', nRow).append(jQuery('<a/>', {
-                'href': '#',
-                'class': 'post-action post-action-manage',
-                'tooltip': aamLocal.labels['Manage Access']
-            }).bind('click', function(event) {
+            
+            jQuery('.aam-list-row-actions', nRow).append(_this.createIcon(
+                'small', 
+                'manage',
+                aamLocal.labels['Manage Access']
+            ).bind('click', function(event) {
                 event.preventDefault();
-                _this.launch(jQuery(this), 'post-action-manage');
                 _this.launchManageAccessDialog(this, nRow, aData, 'post');
             }));
+            
+            var edit = _this.createIcon(
+                'small', 
+                'pen',
+                aamLocal.labels['Edit']
+            ).attr({
+                href: aData[2].replace('&amp;', '&'),
+                target: '_blank'
+            });
+            jQuery('.aam-list-row-actions', nRow).append(edit);
+
+            if (aData[1] === 'trash') {
+                jQuery('.aam-list-row-actions', nRow).append(_this.createIcon(
+                    'small', 
+                    'delete',
+                    aamLocal.labels['Delete Post']
+                ).bind('click', function(event) {
+                    event.preventDefault();
+                    _this.launchDeletePostDialog(this, nRow, aData, true);
+                }));
+            } else {
+                jQuery('.aam-list-row-actions', nRow).append(_this.createIcon(
+                    'small', 
+                    'trash',
+                    aamLocal.labels['Move to Trash']
+                ).bind('click', function(event) {
+                    event.preventDefault();
+                    _this.launchDeletePostDialog(this, nRow, aData, false);
+                }));
+            }
+
+            if (parseInt(aData[6]) === 1) {
+                jQuery('.aam-list-row-actions', nRow).append(_this.createIcon(
+                    'small', 
+                    'roleback',
+                    aamLocal.labels['Restore Default Access']
+                ).bind('click', function(event) {
+                    event.preventDefault();
+                    _this.restorePostAccess(aData[0], 'post', nRow);
+                    jQuery(this).remove();
+                }));
+            }
 
             _this.initTooltip(nRow);
         },
         fnDrawCallback: function() {
             jQuery('.post-breadcrumb').addClass('post-breadcrumb-loading');
             _this.loadBreadcrumb();
-            jQuery('#event_list_wrapper .clear-table-filter').bind('click', function(event) {
-                event.preventDefault();
-                jQuery('#event_list_filter input').val('');
-                _this.blogTables.postList.fnFilter('');
-            });
+            jQuery('#event_list_wrapper .clear-table-filter').bind(
+                    'click', function(event) {
+                        event.preventDefault();
+                        jQuery('#event_list_filter input').val('');
+                        _this.blogTables.postList.fnFilter('');
+                    }
+            );
         },
         fnInfoCallback: function(oSettings, iStart, iEnd, iMax, iTotal, sPre) {
             return (iMax !== iTotal ? _this.clearFilterIndicator() : '');
@@ -2379,7 +2551,7 @@ AAM.prototype.launchFilterPostDialog = function(button) {
         modal: true,
         buttons: buttons,
         close: function() {
-            _this.terminate(jQuery(button), 'post-top-action-filter');
+            _this.deactivateIcon(button);
         }
     });
 };
@@ -2388,7 +2560,8 @@ AAM.prototype.launchFilterPostDialog = function(button) {
  * Launch Manage Access Control for selected post
  *
  * @param {Object} button
- * @param {Object} aData
+ * @param {Object} nRow
+ * @param {Array}  aData
  * @param {String} type
  *
  * @returns {void}
@@ -2397,32 +2570,16 @@ AAM.prototype.launchFilterPostDialog = function(button) {
  */
 AAM.prototype.launchManageAccessDialog = function(button, nRow, aData, type) {
     var _this = this;
-    //prepare form for view
-    jQuery('.dataTable', '#access_dialog').hide();
-
-    if (type === 'term') {
-        jQuery('#term_access').show();
-        jQuery('#term_access_frontend').show();
-    } else {
-        jQuery('#term_access').hide();
-    }
-
-    //by default show frontend access
-    jQuery('#post_access_frontend').show();
 
     //reset the Frontend/Backend radio
     if (jQuery('.post-access-area', '#access_dialog').length) {
         //in case it is Visitor, this section is not rendered
-        jQuery('.post-access-area input').attr('checked', false);
         jQuery('.post-access-area #post_area_frontend').attr('checked', true);
         jQuery('.post-access-area').buttonset('refresh');
     }
 
-    //reset all checkboxes
-    jQuery('input', '#access_dialog').prop('checked', false);
-
     //retrieve settings and display the dialog
-    var data = this.compileAjaxPackage('get_access', true);
+    var data = this.compileAjaxPackage('getAccess', true);
     data.id = aData[0];
     data.type = type;
 
@@ -2431,64 +2588,38 @@ AAM.prototype.launchManageAccessDialog = function(button, nRow, aData, type) {
         dataType: 'json',
         data: data,
         success: function(response) {
+            jQuery('#access_control_area').html(response.html);
+            jQuery('#access_dialog .dataTable').hide();
+
             if (type === 'term') {
-                jQuery('.post-access-title').html('All Posts in Term');
-                if (response.counter !== -1) {
+                jQuery('#term_access_frontend').show();
+                if (parseInt(response.counter) !== -1) {
                     jQuery('.post-access-block', '#access_dialog').show();
+                } else {
+                    jQuery('.post-access-block', '#access_dialog').hide();
                 }
             } else {
                 jQuery('.post-access-block', '#access_dialog').hide();
-                jQuery('.post-access-title').html('Post Access');
             }
-            //populate the form
-            for (var object in response.settings) {
-                for (var area in response.settings[object]) {
-                    for (var action in response.settings[object][area]) {
-                        var element = '#' + object + '_' + area;
-                        element += '_' + action;
-                        jQuery(element, '#access_dialog').attr(
-                                'checked',
-                                (parseInt(response.settings[object][area][action]) === 1 ? true : false)
-                                );
-                    }
-                }
-            }
+
+            jQuery('#post_access_frontend').show();
+
 
             var buttons = {};
             buttons[aamLocal.labels['Restore Default']] = function() {
-                //retrieve settings and display the dialog
-                var data = _this.compileAjaxPackage('clear_access', true);
-                data.id = aData[0];
-                data.type = type;
-
-                jQuery.ajax(aamLocal.ajaxurl, {
-                    type: 'POST',
-                    dataType: 'json',
-                    data: data,
-                    success: function(response) {
-                        _this.highlight(nRow, response.status);
-                    },
-                    error: function() {
-                        _this.highlight(nRow, 'failure');
-                    }
-                });
+                _this.restorePostAccess(aData[0], type, nRow);
                 jQuery('#access_dialog').dialog("close");
             };
 
-            if (response.counter <= 5) {
+            if (response.counter <= 10) {
                 buttons[aamLocal.labels['Apply']] = function() {
                     _this.showMetaboxLoader('#access_dialog');
-                    var data = _this.compileAjaxPackage('save_access', true);
+                    var data = _this.compileAjaxPackage('saveAccess', true);
                     data.id = aData[0];
                     data.type = type;
 
                     jQuery('input', '#access_control_area').each(function() {
-                        if (jQuery(this).attr('object')) {
-                            var name = 'access[' + jQuery(this).attr('object') + '][';
-                            name += jQuery(this).attr('area') + '][';
-                            name += jQuery(this).attr('action') + ']';
-                            data[name] = (jQuery(this).prop('checked') ? 1 : 0);
-                        }
+                        data[jQuery(this).attr('name')] = (jQuery(this).prop('checked') ? 1 : 0);
                     });
 
                     jQuery.ajax(aamLocal.ajaxurl, {
@@ -2524,16 +2655,123 @@ AAM.prototype.launchManageAccessDialog = function(button, nRow, aData, type) {
                 title: 'Manage Access',
                 buttons: buttons,
                 close: function() {
-                    _this.terminate(
-                            jQuery(button), 'post-breadcrumb-line-action-manage'
-                            );
                 }
             });
+            
+            _this.doAction('aam_get_access_loaded');
         },
         error: function() {
             _this.highlight(nRow, 'failure');
         }
     });
+};
+
+/**
+ * Restore Default Post/Term Access
+ *
+ * @param {type} id
+ * @param {type} type
+ * @param {type} nRow
+ *
+ * @returns {void}
+ */
+AAM.prototype.restorePostAccess = function(id, type, nRow) {
+    var _this = this;
+
+    //retrieve settings and display the dialog
+    var data = this.compileAjaxPackage('clearAccess', true);
+    data.id = id;
+    data.type = type;
+
+    jQuery.ajax(aamLocal.ajaxurl, {
+        type: 'POST',
+        dataType: 'json',
+        data: data,
+        success: function(response) {
+            _this.highlight(nRow, response.status);
+        },
+        error: function() {
+            _this.highlight(nRow, 'failure');
+        }
+    });
+};
+
+/**
+ * Launch the Delete Post Dialog
+ *
+ * @param {Object}  button
+ * @param {Object}  nRow
+ * @param {Object}  aData
+ * @param {Boolean} force
+ *
+ * @returns {void}
+ *
+ * @access public
+ */
+AAM.prototype.launchDeletePostDialog = function(button, nRow, aData, force) {
+    var _this = this;
+
+    jQuery('#delete_post_dialog .dialog-content').html(
+            aamLocal.labels[(force ? 'Delete' : 'Trash') + ' Post Message'].replace('%s', aData[3])
+    );
+    var buttons = {};
+
+    if (force === false) {
+        buttons[aamLocal.labels['Delete Permanently']] = function() {
+            _this.deletePost(aData[0], true, nRow);
+        };
+    }
+
+    buttons[aamLocal.labels[(force ? 'Delete' : 'Trash') + ' Post']] = function() {
+        _this.deletePost(aData[0], force, nRow);
+    };
+    buttons[aamLocal.labels['Cancel']] = function() {
+        jQuery('#delete_post_dialog').dialog("close");
+    };
+
+    jQuery('#delete_post_dialog').dialog({
+        resizable: false,
+        height: 'auto',
+        width: '30%',
+        modal: true,
+        title: aamLocal.labels[(force ? 'Delete' : 'Trash') + ' Post'],
+        buttons: buttons,
+        close: function() {
+            _this.deactivateIcon(button);
+        }
+    });
+};
+
+/**
+ * Delete or Trash the Post
+ *
+ * @param {type} id
+ * @param {type} force
+ * @param {type} nRow
+ *
+ * @returns {void}
+ */
+AAM.prototype.deletePost = function(id, force, nRow) {
+    var _this = this;
+
+    var data = _this.compileAjaxPackage('deletePost');
+    data.post = id;
+    data.force = (force ? 1 : 0);
+    jQuery.ajax(aamLocal.ajaxurl, {
+        type: 'POST',
+        dataType: 'json',
+        data: data,
+        success: function(response) {
+            if (response.status === 'success') {
+                _this.blogTables.postList.fnDeleteRow(nRow);
+            }
+            _this.highlight('#post_list_wrapper', response.status);
+        },
+        error: function() {
+            _this.highlight('#post_list_wrapper', 'failure');
+        }
+    });
+    jQuery('#delete_post_dialog').dialog("close");
 };
 
 /**
@@ -2576,31 +2814,33 @@ AAM.prototype.buildPostBreadcrumb = function(response) {
     }));
 
     if (/^[\d]+$/.test(this.postTerm)) {
-        jQuery('.post-breadcrumb-line-actions').append(jQuery('<a/>', {
-            'href': response.link,
-            'target': '_blank',
-            'class': 'post-breadcrumb-line-action post-breadcrumb-line-action-edit',
-            'tooltip': aamLocal.labels['Edit Term']
-        }));
-        jQuery('.post-breadcrumb-line-actions').append(jQuery('<a/>', {
-            'href': '#',
-            'class': 'post-breadcrumb-line-action post-breadcrumb-line-action-manage',
-            'tooltip': aamLocal.labels['Manager Access']
-        }).bind('click', {id: response.breadcrumb[i][0]}, function(event) {
+        var edit = _this.createIcon(
+            'small', 
+            'pen', 
+            aamLocal.labels['Edit Term']
+        ).attr({
+            href: response.link,
+            target: '_blank'
+        });
+        jQuery('.post-breadcrumb-line-actions').append(edit);
+        jQuery('.post-breadcrumb-line-actions').append(_this.createIcon(
+            'small', 
+            'manage', 
+            aamLocal.labels['Manage Access']
+        ).bind('click', {id: response.breadcrumb[i][0]}, function(event) {
             event.preventDefault();
-            _this.launch(this, 'post-breadcrumb-line-action-manage');
             var aData = new Array();
             aData[0] = event.data.id;
             _this.launchManageAccessDialog(
                     this, jQuery('.post-breadcrumb'), aData, 'term'
-                    );
+            );
         }));
     } else {
         jQuery('.post-breadcrumb-line-actions').append(jQuery('<a/>', {
             'href': 'http://wpaam.com',
             'target': '_blank',
             'class': 'post-breadcrumb-line-action post-breadcrumb-line-action-lock',
-            'tooltip': aamLocal.labels['Unlock Default Accesss Control']
+            'aam-tooltip': aamLocal.labels['Unlock Default Accesss Control']
         }));
         this.doAction('aam_breadcrumb_action', response);
     }
@@ -2616,7 +2856,7 @@ AAM.prototype.buildPostBreadcrumb = function(response) {
  */
 AAM.prototype.loadBreadcrumb = function() {
     var _this = this;
-    var data = this.compileAjaxPackage('post_breadcrumb');
+    var data = this.compileAjaxPackage('postBreadcrumb');
     data.id = _this.postTerm;
     //send the request
     jQuery.ajax(aamLocal.ajaxurl, {
@@ -2642,7 +2882,7 @@ AAM.prototype.loadBreadcrumb = function() {
 AAM.prototype.initPostTree = function() {
     var _this = this;
 
-    var data = this.compileAjaxPackage('post_tree');
+    var data = this.compileAjaxPackage('postTree');
 
     jQuery("#tree").treeview({
         url: aamLocal.ajaxurl,
@@ -2676,6 +2916,64 @@ AAM.prototype.initPostTree = function() {
 };
 
 /**
+ * Create AAM icon
+ * 
+ * @param string size
+ * @param string qualifier
+ * @param string tooltip
+ * 
+ * @returns {object}
+ * 
+ * @access public
+ */
+AAM.prototype.createIcon = function(size, qualifier, tooltip){
+    var icon = jQuery('<a/>', {
+        class: 'aam-icon aam-icon-' + size + ' aam-icon-' + size + '-' + qualifier,
+        href: '#'
+    });
+    //add tooltip if defined
+    if (typeof tooltip !== 'undefined'){
+        icon.attr('aam-tooltip', tooltip);
+    }
+    
+    //add iternal span to apply table-cell css
+    icon.html(jQuery('<span/>'));
+    
+    return icon;
+};
+
+/**
+ * Mark icons as loading
+ * 
+ * @param object|string icon
+ * @param string        size
+ * 
+ * @returns void
+ * 
+ * @access public
+ */
+AAM.prototype.loadingIcon = function(icon, size){
+    jQuery(icon).addClass('aam-' + size + '-loader');
+};
+
+/**
+ * Remove loading icon
+ * 
+ * @param object|string icon
+ * 
+ * @returns void
+ * 
+ * @access public
+ */
+AAM.prototype.removeLoadingIcon = function(icon){
+    if (jQuery(icon).hasClass('aam-medium-loader')){
+        jQuery(icon).removeClass('aam-medium-loader');
+    } else if (jQuery(icon).hasClass('aam-small-loader')){
+        jQuery(icon).removeClass('aam-small-loader');
+    }
+};
+
+/**
  * Launch the button
  *
  * @param {Object} element
@@ -2685,8 +2983,8 @@ AAM.prototype.initPostTree = function() {
  *
  * @access public
  */
-AAM.prototype.launch = function(element, inactive) {
-    jQuery(element).removeClass(inactive).addClass(inactive + '-active');
+AAM.prototype.activateIcon = function(element, size) {
+    jQuery(element).addClass('aam-icon-' + size + '-active');
 };
 
 /**
@@ -2699,8 +2997,14 @@ AAM.prototype.launch = function(element, inactive) {
  *
  * @access public
  */
-AAM.prototype.terminate = function(element, inactive) {
-    jQuery(element).removeClass(inactive + '-active').addClass(inactive);
+AAM.prototype.deactivateIcon = function(element) {
+    if (jQuery(element).hasClass('aam-icon-small-active')){
+        jQuery(element).removeClass('aam-icon-small-active');
+    } else if (jQuery(element).hasClass('aam-icon-medium-active')){
+        jQuery(element).removeClass('aam-icon-medium-active');
+    } else if (jQuery(element).hasClass('aam-icon-minor-active')){
+        jQuery(element).removeClass('aam-icon-minor-active');
+    }
 };
 
 /**
@@ -2723,49 +3027,6 @@ AAM.prototype.highlight = function(selector, status) {
             color: '#FFAAAA'
         }, 3000);
     }
-};
-
-/**
- * Grab and build Role Select dropdown
- *
- * @param {String} selector
- * @param {String} selected
- *
- * @returns {void}
- *
- * @access public
- */
-AAM.prototype.renderRoleSelectList = function(selector, selected) {
-    var _this = this;
-    //load Role list
-    jQuery(selector).removeClass('dialog-input').addClass('dialog-input-dynamic').empty();
-    var data = this.compileAjaxPackage('role_list');
-    jQuery.ajax(aamLocal.ajaxurl, {
-        type: 'POST',
-        dataType: 'json',
-        data: data,
-        success: function(response) {
-            jQuery(selector).append(jQuery('<option/>', {
-                'value': ''
-            }).html('Choose...'));
-            for (var i in response.aaData) {
-                jQuery(selector).append(jQuery('<option/>', {
-                    'value': response.aaData[i][0]
-                }).html(response.aaData[i][2]));
-            }
-
-            if (typeof selected !== 'undefined') {
-                jQuery(selector).val(selected);
-            }
-
-            jQuery(selector).removeClass('dialog-input-dynamic').addClass(
-                    'dialog-input'
-                    );
-        },
-        error: function() {
-            _this.highlight(selector, 'failure');
-        }
-    });
 };
 
 jQuery(document).ready(function() {

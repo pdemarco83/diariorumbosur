@@ -3,17 +3,16 @@
 /**
   Plugin Name: Advanced Access Manager
   Description: Manage User and Role Access to WordPress Backend and Frontend.
-  Version: 2.0 Beta 4
+  Version: 2.8
   Author: Vasyl Martyniuk <support@wpaam.com>
   Author URI: http://www.wpaam.com
 
+  ===========================================================================
+  LICENSE: This file is subject to the terms and conditions defined in      *
+  file 'license.txt', which is part of this source code package.            *
+  ===========================================================================
  *
- * ======================================================================
- * LICENSE: This file is subject to the terms and conditions defined in *
- * file 'license.txt', which is part of this source code package.       *
- * ======================================================================
  */
-
 require(dirname(__FILE__) . '/config.php');
 
 /**
@@ -68,6 +67,9 @@ class aam {
             //print required JS & CSS
             add_action('admin_print_scripts', array($this, 'printScripts'));
             add_action('admin_print_styles', array($this, 'printStyles'));
+            
+            //add help menu
+            add_filter('contextual_help', array($this, 'contextualHelp'), 10, 3);
 
             //manager Admin Menu
             if (aam_Core_API::isNetworkPanel()) {
@@ -75,18 +77,13 @@ class aam {
             } else {
                 add_action('admin_menu', array($this, 'adminMenu'), 999);
             }
+            add_filter('parent_file', array($this, 'filterMenu'), 999, 1);
             //manager AAM Features Content rendering
             add_action('admin_action_features', array($this, 'features'));
             //manager AAM Ajax Requests
             add_action('wp_ajax_aam', array($this, 'ajax'));
             //manager WordPress metaboxes
-            //add_action("do_meta_boxes", array($this, 'metaboxes'), 1, 3);
             add_action("in_admin_header", array($this, 'metaboxes'), 999);
-            //add_action("add_meta_boxes", array($this, 'filterMetaboxes'), 999, 2);
-            //add_filter(
-            //        'get_user_option_meta-box-order_dashboard',
-            //        array($this, 'dashboardFilter'), 999, 3
-            //);
             //manager user search and authentication control
             add_filter('user_search_columns', array($this, 'searchColumns'));
             //terms & post restriction handlers
@@ -99,7 +96,14 @@ class aam {
             add_action('admin_action_edit', array($this, 'adminActionEdit'), 10);
             //wp die hook
             add_filter('wp_die_handler', array($this, 'wpDie'), 10);
+            //***For UI purposes***
+            add_action('parse_tax_query', array($this, 'parseTaxQuery'), 10, 1);
+            add_filter('editable_roles', array($this, 'editableRoles'), 999);
+            //control Admin area
+            add_action('admin_init', array($this, 'adminInit'));
         } else {
+            //make sure that subject is initiated during the login
+            add_action('wp_login', array($this, 'login'), 0, 2);
             //control WordPress frontend
             add_action('wp', array($this, 'wp'), 999);
             //filter navigation pages & taxonomies
@@ -117,6 +121,38 @@ class aam {
 
         //load extensions only when admin
         $this->loadExtensions();
+
+        //add shutdown action
+        add_action('shutdown', array($this, 'shutdown'), 1);
+    }
+
+    /**
+     * Control Admin Area access
+     *
+     * @return void
+     *
+     * @access public
+     */
+    public function adminInit() {
+        global $plugin_page;
+
+        //compile menu
+        if (empty($plugin_page)){
+            $menu = basename(aam_Core_Request::server('SCRIPT_NAME'));
+            if ($query = trim(aam_Core_Request::server('QUERY_STRING'))) {
+                $menu .= '?' . $query;
+            }
+        } else {
+            $menu = $plugin_page;
+        }
+
+        $has = $this->getUser()->getObject(aam_Control_Object_Menu::UID)->has($menu);
+        if ($has === true){
+            $this->reject();
+        } elseif(is_null($has)
+                && aam_Core_ConfigPress::getParam('aam.menu.undefined') == 'deny'){
+            $this->reject();
+        }
     }
 
     /**
@@ -127,7 +163,7 @@ class aam {
      * @access public
      */
     public function checkUpdate() {
-        if (class_exists('aam_Core_Update') && (AAM_APPL_ENV != 'development')) {
+        if (aam_Core_API::getBlogOption('aam_updated', '', 1) != AAM_VERSION) {
             $update = new aam_Core_Update($this);
             $update->run();
         }
@@ -176,16 +212,16 @@ class aam {
 
         return $post;
     }
-    
+
     /**
      * Filter backend term list
-     * 
+     *
      * @param array $terms
      * @param array $taxonomies
      * @param array $args
-     * 
+     *
      * @return array
-     * 
+     *
      * @access public
      */
     public function getBackendTerms($terms, $taxonomies, $args) {
@@ -194,13 +230,13 @@ class aam {
 
     /**
      * Filter frontend term list
-     * 
+     *
      * @param array $terms
      * @param array $taxonomies
      * @param array $args
-     * 
+     *
      * @return array
-     * 
+     *
      * @access public
      */
     public function getFrontendTerms($terms, $taxonomies, $args) {
@@ -209,20 +245,21 @@ class aam {
 
     /**
      * Filter terms based on area
-     * 
+     *
      * @param string $area
      * @param array $terms
-     * 
+     *
      * @return array
-     * 
+     *
      * @access public
      */
     public function getTerms($area, $terms) {
         if (is_array($terms)) {
-            $object = $this->getUser()->getObject(aam_Control_Object_Term::UID);
             foreach ($terms as $i => $term) {
                 if (is_object($term)) {
-                    $object->init($term->term_id);
+                    $object = $this->getUser()->getObject(
+                            aam_Control_Object_Term::UID, $term->term_id
+                    );
                     if ($object->has($area, aam_Control_Object_Term::ACTION_LIST)) {
                         unset($terms[$i]);
                     }
@@ -235,57 +272,77 @@ class aam {
 
     /**
      * Filter Pages that should be excluded in frontend
-     * 
+     *
      * @param array $pages
-     * 
+     *
      * @return array
-     * 
+     *
      * @access public
      * @todo Cache this process
      */
-    public function getPages($pages){
-        $object = $this->getUser()->getObject(aam_Control_Object_Post::UID);
-        if (is_array($pages)){
-            foreach($pages as $i => $page){
-                $object->init($page);
-                if ($object->has('frontend', aam_Control_Object_Post::ACTION_EXCLUDE)){
+    public function getPages($pages) {
+        if (is_array($pages)) {
+            foreach ($pages as $i => $page) {
+                $object = $this->getUser()->getObject(
+                        aam_Control_Object_Post::UID, $page->ID
+                );
+                if ($object->has('frontend', aam_Control_Object_Post::ACTION_EXCLUDE)) {
                     unset($pages[$i]);
                 }
             }
         }
-        
+
         return $pages;
     }
     
     /**
-     * Filter Navigation menu 
+     * Contextual Help Menu
      * 
+     * @param type $contextual_help
+     * @param type $screen_id
+     * @param type $screen
+     * 
+     * @return 
+     */
+    public function contextualHelp($contextual_help, $screen_id, $screen){
+        if ($this->isAAMScreen()){
+            $help = new aam_View_Help();
+            $help->content($screen);
+        }
+        
+        return $contextual_help;
+    }
+
+    /**
+     * Filter Navigation menu
+     *
      * @param array $pages
-     * 
+     *
      * @return array
-     * 
+     *
      * @access public
      */
-    public function getNavigationMenu($pages){
-        if (is_array($pages)){
-            $post = $this->getUser()->getObject(aam_Control_Object_Post::UID);
-            $term = $this->getUser()->getObject(aam_Control_Object_Term::UID);
-            foreach($pages as $i => $page){
-                if ($page->type === 'taxonomy'){
-                    $object = $term;
+    public function getNavigationMenu($pages) {
+        if (is_array($pages)) {
+            foreach ($pages as $i => $page) {
+                if ($page->type === 'taxonomy') {
+                    $object = $this->getUser()->getObject(
+                            aam_Control_Object_Term::UID, $page->object_id
+                    );
                     $exclude = aam_Control_Object_Term::ACTION_EXCLUDE;
                 } else {
-                    $object = $post;
+                    $object = $this->getUser()->getObject(
+                            aam_Control_Object_Post::UID, $page->object_id
+                    );
                     $exclude = aam_Control_Object_Post::ACTION_EXCLUDE;
                 }
-                $object->init($page->object_id);
-                
-                if ($object->has('frontend', $exclude)){
+
+                if ($object->has('frontend', $exclude)) {
                     unset($pages[$i]);
                 }
             }
         }
-        
+
         return $pages;
     }
 
@@ -339,16 +396,20 @@ class aam {
      * @access public
      */
     public function reject() {
-        $cpress = $this->getUser()->getObject(aam_Control_Object_ConfigPress::UID);
         if (is_admin()) {
-            $redirect = $cpress->getParam('backend.access.deny.redirect');
-            $message = $cpress->getParam(
-                    'backend.access.deny.message', __('Access denied', 'aam')
+            $redirect = aam_Core_ConfigPress::getParam(
+                            'backend.access.deny.redirect'
+            );
+            $message = aam_Core_ConfigPress::getParam(
+                            'backend.access.deny.message', __('Access Denied', 'aam')
             );
         } else {
-            $redirect = $cpress->getParam('frontend.access.deny.redirect');
-            $message = $cpress->getParam(
-                    'frontend.access.deny.message', __('Access denied', 'aam')
+            $redirect = aam_Core_ConfigPress::getParam(
+                            'frontend.access.deny.redirect'
+            );
+            $message = aam_Core_ConfigPress::getParam(
+                            'frontend.access.deny.message',
+                            __('Access Denied', 'aam')
             );
         }
 
@@ -373,12 +434,11 @@ class aam {
      * @access public
      */
     public function wpDie($function) {
-        $cpress = $this->getUser()->getObject(aam_Control_Object_ConfigPress::UID);
-        $redirect = $cpress->getParam('backend.access.deny.redirect');
-        $message = $cpress->getParam(
-                'backend.access.deny.message', __('Access denied', 'aam')
+        $redirect = aam_Core_ConfigPress::getParam('backend.access.deny.redirect');
+        $message = aam_Core_ConfigPress::getParam(
+                        'backend.access.deny.message', __('Access Denied', 'aam')
         );
-
+        
         if (filter_var($redirect, FILTER_VALIDATE_URL)) {
             wp_redirect($redirect);
             exit;
@@ -505,9 +565,6 @@ class aam {
         $objects[aam_Control_Object_Event::UID] = new aam_Control_Object_Event(
                 $subject
         );
-
-        $configPress = new aam_Control_Object_ConfigPress($subject, 1);
-        $objects[aam_Control_Object_ConfigPress::UID] = $configPress;
 
         return $objects;
     }
@@ -647,6 +704,17 @@ class aam {
     }
 
     /**
+     * Make sure that AAM ConfigPress UI Page is used
+     *
+     * @return boolean
+     *
+     * @access public
+     */
+    public function isAAMConfigPressScreen() {
+        return (aam_Core_Request::get('page') == 'aam-configpress' ? true : false);
+    }
+
+    /**
      * Print necessary styles
      *
      * @return void
@@ -659,9 +727,14 @@ class aam {
             wp_enqueue_style('global');
             wp_enqueue_style('wp-admin');
             wp_enqueue_style('aam-ui-style', AAM_MEDIA_URL . 'css/jquery-ui.css');
-            wp_enqueue_style('aam-style', AAM_MEDIA_URL . 'css/aam.css');
+            wp_enqueue_style('aam-common-style', AAM_MEDIA_URL . 'css/common.css');
+            wp_enqueue_style(
+                    'aam-style', 
+                    AAM_MEDIA_URL . 'css/aam.css', 
+                    array('aam-common-style')
+            );
             wp_enqueue_style('aam-datatables', AAM_MEDIA_URL . 'css/jquery.dt.css');
-            wp_enqueue_style('aam-codemirror', AAM_MEDIA_URL . 'css/codemirror.css');
+            wp_enqueue_style('wp-pointer');
             wp_enqueue_style(
                     'aam-treeview', AAM_MEDIA_URL . 'css/jquery.treeview.css'
             );
@@ -670,14 +743,23 @@ class aam {
             wp_enqueue_style('global');
             wp_enqueue_style('wp-admin');
             wp_enqueue_style('aam-ui-style', AAM_MEDIA_URL . 'css/jquery-ui.css');
-            wp_enqueue_style('aam-style', AAM_MEDIA_URL . 'css/extension.css');
+            wp_enqueue_style('aam-common-style', AAM_MEDIA_URL . 'css/common.css');
+            wp_enqueue_style(
+                    'aam-style', 
+                    AAM_MEDIA_URL . 'css/extension.css', 
+                    array('aam-common-style')
+            );
             wp_enqueue_style('aam-datatables', AAM_MEDIA_URL . 'css/jquery.dt.css');
+        } elseif ($this->isAAMConfigPressScreen()) {
+            wp_enqueue_style('aam-common-style', AAM_MEDIA_URL . 'css/common.css');
+            wp_enqueue_style(
+                    'aam-style', 
+                    AAM_MEDIA_URL . 'css/configpress.css', 
+                    array('aam-common-style')
+            );
+            wp_enqueue_style('aam-codemirror', AAM_MEDIA_URL . 'css/codemirror.css');
         }
 
-        //migration functionality. TODO - remove in July 15 2014
-        if (class_exists('aam_Core_Migrate')){
-            wp_enqueue_style('aam-migrate', AAM_MEDIA_URL . 'css/migrate.css');
-        }
     }
 
     /**
@@ -693,8 +775,6 @@ class aam {
             wp_enqueue_script('dashboard');
             wp_enqueue_script('aam-admin', AAM_MEDIA_URL . 'js/aam.js');
             wp_enqueue_script('aam-datatables', AAM_MEDIA_URL . 'js/jquery.dt.js');
-            wp_enqueue_script('aam-codemirror', AAM_MEDIA_URL . 'js/codemirror.js');
-            wp_enqueue_script('aam-cmini', AAM_MEDIA_URL . 'js/properties.js');
             wp_enqueue_script(
                     'aam-treeview', AAM_MEDIA_URL . 'js/jquery.treeview.js'
             );
@@ -709,6 +789,7 @@ class aam {
             wp_enqueue_script('jquery-ui-sortable');
             wp_enqueue_script('jquery-ui-menu');
             wp_enqueue_script('jquery-effects-highlight');
+            wp_enqueue_script('wp-pointer');
 
             $localization = array(
                 'nonce' => wp_create_nonce('aam_ajax'),
@@ -717,9 +798,12 @@ class aam {
                 'addUserURI' => admin_url('user-new.php'),
                 'editUserURI' => admin_url('user-edit.php'),
                 'defaultSegment' => array(
-                    'role' => 'administrator',
+                    'role' => $this->getDefaultEditableRole(),
                     'blog' => get_current_blog_id(),
                     'user' => 0
+                ),
+                'contextualMenu' => get_user_meta(
+                        get_current_user_id(), 'aam_contextual_menu', true
                 ),
                 'labels' => aam_View_Manager::uiLabels()
             );
@@ -742,17 +826,33 @@ class aam {
                 'labels' => aam_View_Manager::uiLabels()
             );
             wp_localize_script('aam-admin', 'aamLocal', $localization);
-        }
+        } elseif ($this->isAAMConfigPressScreen()) {
+            wp_enqueue_script('jquery-ui-core');
+            wp_enqueue_script('jquery-effects-core');
+            wp_enqueue_script('jquery-effects-highlight');
+            wp_enqueue_script('aam-admin', AAM_MEDIA_URL . 'js/configpress.js');
+            wp_enqueue_script('aam-codemirror', AAM_MEDIA_URL . 'js/codemirror.js');
+            wp_enqueue_script('aam-cmini', AAM_MEDIA_URL . 'js/properties.js');
 
-        //migration functionality. TODO - remove in July 15 2014
-        if (class_exists('aam_Core_Migrate')){
-            wp_enqueue_script('aam-migrate', AAM_MEDIA_URL . 'js/migrate.js');
             $localization = array(
                 'nonce' => wp_create_nonce('aam_ajax'),
                 'ajaxurl' => admin_url('admin-ajax.php'),
             );
-            wp_localize_script('aam-migrate', 'aamMigrateLocal', $localization);
+            wp_localize_script('aam-admin', 'aamLocal', $localization);
         }
+    }
+
+    /**
+     * Get first editable role
+     *
+     * @return string
+     *
+     * @access public
+     */
+    public function getDefaultEditableRole(){
+        $role_keys = array_keys(get_editable_roles());
+
+        return array_shift($role_keys);
     }
 
     /**
@@ -767,9 +867,12 @@ class aam {
      */
     public function features() {
         check_ajax_referer('aam_ajax');
-
-        $model = new aam_View_Manager;
-        $model->retrieveFeatures();
+        try{
+            $model = new aam_View_Manager;
+            $model->retrieveFeatures();
+        } catch (Exception $e){
+            echo $e->getMessage();
+        }
         die();
     }
 
@@ -783,8 +886,16 @@ class aam {
     public function ajax() {
         check_ajax_referer('aam_ajax');
 
-        $model = new aam_View_Ajax;
-        echo $model->run();
+        //clean buffer to make sure that nothing messing around with system
+        while (@ob_end_clean());
+
+        //process ajax request
+        try{
+            $model = new aam_View_Manager();
+            echo $model->processAjax();
+        } catch (Exception $e){
+            echo '-1';
+        }
         die();
     }
 
@@ -797,50 +908,25 @@ class aam {
      */
     public function metaboxes() {
         global $post;
-        
-        $post_type = ($post instanceof WP_Post ? $post->post_type : '');
-        
-        if (aam_Core_Request::get('aam_meta_init')) {
-            $model = new aam_View_Metabox;
-            $model->run($post_type);
-        } else { 
-             $this->getUser()->getObject(aam_Control_Object_Metabox::UID)
-                                            ->filterBackend($post_type, 'dashboard');
-        }
-    }
-    
-    /**
-     * Filter Dashboard Widgets & Metaboxes
-     *
-     * @param array $result
-     * @param mixed $option
-     * @param mixed $user
-     *
-     * @return void
-     *
-     * @access public
-     * @deprecated since 2.0 Beta 3
-     */
-    public function dashboardFilter($result, $option, $user) {
-        $this->getUser()->getObject(
-                aam_Control_Object_Metabox::UID)->filterBackend('dashboard');
-    }
 
-    /**
-     * Filter Screen Metaboxes
-     *
-     * @param string $post_type
-     * @param WP_Post $post
-     *
-     * @return void
-     *
-     * @access public
-     * @deprecated since 2.0 Beta 3
-     */
-    public function filterMetaboxes($post_type, $post) {
-        $this->getUser()->getObject(aam_Control_Object_Metabox::UID)->filterBackend(
-                $post_type, $post
-        );
+        //make sure that nobody is playing with screen options
+        if ($post instanceof WP_Post) {
+            $screen = $post->post_type;
+        } elseif ($screen_object = get_current_screen()) {
+            $screen = $screen_object->id;
+        } else {
+            $screen = '';
+        }
+
+        if (aam_Core_Request::get('aam_meta_init')) {
+            try {
+                $model = new aam_View_Metabox;
+                $model->run($screen);
+            } catch (Exception $e){}
+        } else {
+            $this->getUser()->getObject(aam_Control_Object_Metabox::UID)
+                    ->filterBackend($screen);
+        }
     }
 
     /**
@@ -855,7 +941,9 @@ class aam {
         add_menu_page(
                 __('AAM', 'aam'),
                 __('AAM', 'aam'),
-                'administrator',
+                aam_Core_ConfigPress::getParam(
+                        'aam.page.access_control.capability', 'administrator'
+                ),
                 'aam',
                 array($this, 'content'),
                 AAM_BASE_URL . 'active-menu.png'
@@ -865,21 +953,102 @@ class aam {
                 'aam',
                 __('Access Control', 'aam'),
                 __('Access Control', 'aam'),
-                'administrator',
+                aam_Core_ConfigPress::getParam(
+                        'aam.page.access_control.capability', 'administrator'
+                ),
                 'aam',
                 array($this, 'content')
         );
         add_submenu_page(
                 'aam',
+                __('ConfigPress', 'aam'),
+                __('ConfigPress', 'aam'),
+                aam_Core_ConfigPress::getParam(
+                        'aam.page.configpress.capability', 'administrator'
+                ),
+                'aam-configpress',
+                array($this, 'configPressContent')
+        );
+        add_submenu_page(
+                'aam',
                 __('Extensions', 'aam'),
                 __('Extensions', 'aam'),
-                'administrator',
+                aam_Core_ConfigPress::getParam(
+                        'aam.page.extensions.capability', 'administrator'
+                ),
                 'aam-ext',
                 array($this, 'extensionContent')
         );
 
+    }
+
+    /**
+     * Filter the Admin Menu
+     *
+     * @param string $parent_file
+     *
+     * @return string
+     *
+     * @access public
+     */
+    public function filterMenu($parent_file){
         //filter admin menu
         $this->getUser()->getObject(aam_Control_Object_Menu::UID)->filter();
+
+        return $parent_file;
+    }
+
+    /**
+     * Take control over Tax Query parser
+     *
+     * By default WordPress consider non-empty term & category pair as search by
+     * slug. This is weird assumption and there is no other way to force core to
+     * search posts within custom taxonomy rather than take control over it with
+     * action parse_tax_query.
+     *
+     * @param WP_Query $query
+     *
+     * @return void
+     *
+     * @access public
+     */
+    public function parseTaxQuery($query) {
+        if (!empty($query->query['term']) && !empty($query->query['taxonomy'])) {
+            foreach ($query->tax_query->queries as $id => $dump) {
+                $query->tax_query->queries[$id]['field'] = 'term_id';
+            }
+        }
+    }
+
+    /**
+     * Filter list of editable roles
+     *
+     * Does not allow for current user manager roles that have same or higher Level
+     *
+     * @param array $roles
+     *
+     * @return array
+     *
+     * @access public
+     */
+    public function editableRoles($roles){
+        $filtered = array();
+        $level = aam_Core_API::getUserLevel();
+        
+        
+        //check if super admin is specified
+        if (aam_Core_API::isSuperAdmin() === false){
+            foreach ($roles as $role => $info) {
+                if (empty($info['capabilities']["level_{$level}"])
+                        || !$info['capabilities']["level_{$level}"]) {
+                    $filtered[$role] = $info;
+                }
+            }
+        } else {
+            $filtered = $roles;
+        }
+
+        return $filtered;
     }
 
     /**
@@ -890,7 +1059,23 @@ class aam {
      * @access public
      */
     public function content() {
-        $manager = new aam_View_Manager();
+        try {
+            $manager = new aam_View_Manager();
+            echo $manager->run();
+        } catch (Exception $e) {
+            echo $e->getMessage();
+        }
+    }
+
+    /**
+     * Render ConfigPress Page
+     *
+     * @return void
+     *
+     * @access public
+     */
+    public function configPressContent() {
+        $manager = new aam_View_ConfigPress();
         echo $manager->run();
     }
 
@@ -936,6 +1121,22 @@ class aam {
             $this->setUser(new aam_Control_Subject_Visitor(''));
         }
     }
+    
+    /**
+     * User Login Hook
+     * 
+     * This hook track the user's successfull login and update current subject
+     * 
+     * @param string  $username User Login name
+     * @param Wp_User $user     Current user object
+     * 
+     * @return void
+     * 
+     * @access public
+     */
+    public function login($username, $user) {
+        $this->setUser(new aam_Control_Subject_User($user->ID));
+    }
 
     /**
      * Uninstall hook
@@ -980,6 +1181,17 @@ class aam {
     }
 
     /**
+     * Execute before shutdown actions
+     *
+     * @return void
+     *
+     * @access public
+     */
+    public function shutdown() {
+        $this->getUser()->saveCache();
+    }
+
+    /**
      * Load Installed extensions
      *
      * @return void
@@ -987,13 +1199,14 @@ class aam {
      * @access protected
      */
     protected function loadExtensions() {
-        $model = new aam_Core_Extension($this);
-        $model->load();
+        aam_Core_Repository::getInstance($this)->load();
     }
 
 }
 
-add_action('init', 'aam::initialize');
+//the highest priority (higher the core)
+//this is important to have to catch events like register core post types
+add_action('init', 'aam::initialize', -1);
 
 //register_activation_hook(__FILE__, array('aam', 'activate'));
 register_uninstall_hook(__FILE__, array('aam', 'uninstall'));

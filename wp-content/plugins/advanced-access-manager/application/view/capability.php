@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ======================================================================
  * LICENSE: This file is subject to the terms and conditions defined in *
@@ -74,7 +75,8 @@ class aam_View_Capability extends aam_View_Abstract {
                 );
             }
         } else {
-            $role = $roles->get_role(array_shift($subject->roles));
+            $role_list = $subject->roles;
+            $role = $roles->get_role(array_shift($role_list));
             foreach ($role->capabilities as $capability => $grant) {
                 $response['aaData'][] = array(
                     $capability,
@@ -83,7 +85,7 @@ class aam_View_Capability extends aam_View_Abstract {
                     $this->getHumanText($capability),
                     ''
                 );
-                $response['aaDefault'] = ($subject->defaultCapabilitySet() ? 1 : 0);
+                $response['aaDefault'] = ($subject->isDefaultCapSet() ? 1 : 0);
             }
         }
 
@@ -121,9 +123,14 @@ class aam_View_Capability extends aam_View_Abstract {
     public function addCapability() {
         $roles = new WP_Roles();
         $capability = trim(aam_Core_Request::post('capability'));
+        $unfiltered = intval(aam_Core_Request::post('unfiltered'));
 
         if ($capability) {
-            $normalized = str_replace(' ', '_', strtolower($capability));
+            if ($unfiltered){
+                $normalized = $capability;
+            } else {
+                $normalized = str_replace(' ', '_', strtolower($capability));
+            }
             //add the capability to administrator's role as default behavior
             $roles->add_cap('administrator', $normalized);
             $response = array('status' => 'success', 'capability' => $normalized);
@@ -164,13 +171,9 @@ class aam_View_Capability extends aam_View_Abstract {
     public function restoreCapability(){
         $subject = $this->getSubject();
         $response = array('status' => 'failure');
-        if ($subject->getUID() == aam_Control_Subject_User::UID){
-            foreach($subject->caps as $capability => $grant){
-                if (!in_array($capability, $subject->roles)){
-                    $subject->remove_cap($capability);
-                }
-            }
-            $response = array('status' => 'success');
+        if (($subject->getUID() == aam_Control_Subject_User::UID) 
+                                                    && $subject->resetCapability()){
+            $response['status'] = 'success';
         }
         
         return json_encode($response);

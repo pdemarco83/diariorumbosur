@@ -18,6 +18,38 @@ get_header(); ?>
     <?php dynamic_sidebar( 'sidebar-5' ); ?>
 </div>  
 
+<div class="area-catastrofe">
+
+<?php // con foto, primera de la izquierda
+
+$args = array(
+    'posts_per_page' => 1,
+    'post_type' => 'post',
+    'tax_query' => array(
+        array(
+            'taxonomy' => 'Portada',
+            'field' => 'slug',
+            'terms' => 'catastrofe'
+        )
+    )
+);
+// The Query
+$the_query = new WP_Query( $args);
+// The Loop
+if ( $the_query->have_posts() ) {
+    while ( $the_query->have_posts() ) {
+        $the_query->the_post();
+        get_template_part( 'catastrofe', get_post_format() );
+    }
+} else {
+    // no posts found
+}
+/* Restore original Post Data */
+wp_reset_postdata();
+?>
+
+</div>
+
 <div id="top" class="content-area">
     <div id="top-content" class="site-content" role="main">    
 <?php // las 3 noticias destacadas
@@ -32,6 +64,7 @@ $args = array(
         )
     )
 );
+
 
 // The Query
 $the_query = new WP_Query( $args);

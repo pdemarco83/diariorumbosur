@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ======================================================================
  * LICENSE: This file is subject to the terms and conditions defined in *
@@ -24,6 +25,18 @@ class aam_View_Menu extends aam_View_Abstract {
     }
 
     /**
+     * @inheritdoc
+     */
+    public function defaultOption($options) {
+        //make sure that some parts are always in place
+        if (!isset($options[aam_Control_Object_Menu::UID])) {
+            $options[aam_Control_Object_Menu::UID] = array();
+        }
+
+        return $options;
+    }
+
+    /**
      *
      * @global type $menu
      * @global type $submenu
@@ -31,9 +44,9 @@ class aam_View_Menu extends aam_View_Abstract {
      */
     public function getMenu() {
         global $menu;
-        
+
         $response = array();
-        
+
         //let's create menu list with submenus
         foreach ($menu as $menu_item) {
             if (!preg_match('/^separator/', $menu_item[2])) {
@@ -49,10 +62,10 @@ class aam_View_Menu extends aam_View_Abstract {
                 }
             }
         }
-        
+
         return $response;
     }
-    
+
     /**
      * Prepare filtered submenu
      * 
@@ -72,24 +85,35 @@ class aam_View_Menu extends aam_View_Abstract {
                 if ($this->getSubject()->hasCapability($submenu_item[1]) !== false) {
                     //prepare title
                     $submenu_title = $this->removeHTML($submenu_item[0]);
-                    if (strlen($submenu_title) > 18) {
-                        $submenu_short = substr($submenu_title, 0, 15) . '..';
-                    } else {
-                        $submenu_short = $submenu_title;
-                    }
-
                     $filtered_submenu[] = array(
                         'name' => $submenu_title,
-                        'short' => $submenu_short,
+                        'short' => $this->prepareTitle($submenu_title),
                         'id' => $submenu_item[2]
                     );
                 }
             }
         }
-        
+
         return $filtered_submenu;
     }
-    
+
+    /**
+     * 
+     * @param type $title
+     * @return string
+     */
+    protected function prepareTitle($title) {
+        if (function_exists('mb_strlen')) {
+            if ((mb_strlen($title) > 18)) {
+                $title = mb_substr($title, 0, 15) . '..';
+            }
+        } elseif (strlen($title) > 18) {
+            $title = substr($title, 0, 15) . '..';
+        }
+
+        return $title;
+    }
+
     /**
      * Check if the entire branch is restricted
      * 
@@ -99,17 +123,17 @@ class aam_View_Menu extends aam_View_Abstract {
      * 
      * @access public
      */
-    public function hasRestrictedAll($menu){
+    public function hasRestrictedAll($menu) {
         $menuControl = $this->getSubject()->getObject(aam_Control_Object_Menu::UID);
         $response = $menuControl->has($menu['id']);
-        
-        foreach($menu['submenu'] as $submenu){
-            if ($menuControl->has($submenu['id']) === false){
+
+        foreach ($menu['submenu'] as $submenu) {
+            if ($menuControl->has($submenu['id']) === false) {
                 $response = false;
                 break;
             }
         }
-        
+
         return $response;
     }
 
