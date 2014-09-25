@@ -412,10 +412,9 @@ a:active {
 
 #top-content {
 	float: left;
-	margin:0;
 	padding:0;
 	width: 102.4rem;
-	/*margin-top: 2rem;*/
+	margin-top: 2rem;
 }
 
 #primary {
@@ -572,6 +571,7 @@ a:active {
 .main-navigation li:hover > a,
 .main-navigation li.current_page_item a,
 .main-navigation li.current-menu-item a,
+.main-navigation li.current-post-parent a,
 .main-navigation ul ul a:hover {
 	color: #148ac3;
 }
@@ -1261,7 +1261,8 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 
 /* Archivo de noticias */
 
-#jal_widget-2 .widget-title {
+
+.archivo .widget-title {
 	display: block;
 	height: 4rem;
 	padding-top: 1.5rem;
@@ -1272,7 +1273,20 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 	font-size: 1.8rem;
 	color: #ffffff; 
 	margin-top: 0px;
+	margin-bottom: 10px;
 }
+
+.archivo {
+	font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-size:1.2rem;
+} 
+
+.archivo select {width:20rem;}
+
+.archivo h4 {font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-size:1.2rem;font-weight: bold; margin-bottom:0; margin-top: 0.5rem; }
+
+.archivo input {width:15rem; float:left;margin-bottom: 0.5rem;}
 
 #jal_widget-2 ul{
 	list-style: none;
@@ -1292,3 +1306,4 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 	color: #ffffff; 
 	margin-top: 0px;
 }
+
