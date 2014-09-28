@@ -749,7 +749,7 @@ if ( ! class_exists( 'SearchAndFilter' ) )
 					{
 						$this->urlparams .= "&";
 					}
-					$this->urlparams .= "s=";
+					$this->urlparams .= "s='";
 				}
 			}
 			

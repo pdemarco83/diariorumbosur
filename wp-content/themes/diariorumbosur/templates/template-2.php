@@ -10,6 +10,7 @@
 <?php
  
 get_header(); ?>
+
  
 <section id="primary" class="content-area">
 <div id="content" class="site-content" role="main">
@@ -56,5 +57,4 @@ get_header(); ?>
 </section><!-- #primary .content-area -->
 <div class="template-2-sidebar">  
 <?php get_sidebar(); ?>
-</div>
 <?php get_footer(); ?>

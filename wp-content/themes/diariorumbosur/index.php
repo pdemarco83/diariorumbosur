@@ -13,6 +13,7 @@
 */
  
 get_header(); ?>
+ 
 
 <div class="alerta">
     <?php dynamic_sidebar( 'sidebar-5' ); ?>
@@ -306,6 +307,7 @@ wp_reset_postdata();
 <div id="tertiary" class="banner" role="supplementary"> 
      <?php dynamic_sidebar( 'sidebar-3' ); ?>
 </div><!-- #tertiary .widget-area -->
+
 
 
 <?php get_footer(); ?>

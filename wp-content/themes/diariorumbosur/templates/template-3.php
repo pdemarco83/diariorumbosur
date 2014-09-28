@@ -10,6 +10,7 @@
 <?php
  
 get_header(); ?>
+
  
 <section id="primary" class="content-area">
 <div id="content" class="site-content" role="main">
@@ -50,11 +51,11 @@ get_header(); ?>
 <?php get_template_part( 'no-results', 'archive' ); ?>
  
 <?php endif; ?>
- 
+
+
 </div><!-- #content .site-content -->
 </section><!-- #primary .content-area -->
 
 <div class="template-3-sidebar">  
 <?php get_sidebar(); ?>
-</div>
 <?php get_footer(); ?>

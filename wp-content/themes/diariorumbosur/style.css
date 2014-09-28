@@ -1171,6 +1171,7 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 
 
 
+
 /* template-3 (Business) */
 
 
@@ -1279,6 +1280,7 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 .archivo {
 	font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
 	font-size:1.2rem;
+	margin-top: 2rem;
 } 
 
 .archivo select {width:20rem;}
@@ -1286,11 +1288,49 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 .archivo h4 {font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
 	font-size:1.2rem;font-weight: bold; margin-bottom:0; margin-top: 0.5rem; }
 
-.archivo input {width:15rem; float:left;margin-bottom: 0.5rem;}
+.archivo label {height: 2rem;}
+
+.archivo input {width:20rem; float:left;margin-bottom: 0.5rem;}
+
+.archivo input[type=checkbox]{width:2rem; margin-top: 0.2rem;} 
 
 #jal_widget-2 ul{
 	list-style: none;
 }
+
+.archivo-header {
+	border-bottom: .1rem solid #AFC0D4;
+	margin-bottom: 1.5rem;
+}
+
+.archivo-header a {
+	font-size: 1.5rem;
+	font-weight: normal;
+	color: #000000;
+}
+
+	.archivo-header a:hover {color:#148ac3;}
+
+.archivo-header li, .archivo-header ul {
+	list-style: none;
+	padding: 0;
+	margin: 0; 	
+}
+
+.archivo-header span {
+	font-size: 1.2rem;
+	color: #505050;
+}
+
+.archivo-header .fecha {
+	font-size: 1.8rem;
+	color: #FFFFFF;
+	display: block;
+	background-color: #148AC3;
+	padding-left: .5rem;	
+}
+
+
 
 /* Últimas noticias */
 
@@ -1304,6 +1344,10 @@ src:url('fonts/YanoneKaffeesatz-Regular.otf');
 	font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
 	font-size: 1.8rem;
 	color: #ffffff; 
-	margin-top: 0px;
+	margin-top: 15px;
 }
 
+.rpwe-title a { 
+	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+	color: #000000;
+}

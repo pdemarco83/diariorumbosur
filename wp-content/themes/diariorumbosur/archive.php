@@ -7,8 +7,9 @@
 * @package diariorumbosur
 * @since diariorumbosur 1.0
 */
- 
+
 get_header(); ?>
+
  
 <section id="primary" class="content-area">
 <div id="content" class="site-content" role="main">
@@ -18,7 +19,9 @@ get_header(); ?>
 <header class="page-header">
     <h1 class="page-title">
         <?php
+            
             if ( is_category() ) {
+    
                 printf( __( '%s', 'diariorumbosur' ), '<span>' . single_cat_title( '', false ) . '</span>' );
  
             } elseif ( is_tag() ) {
@@ -44,7 +47,7 @@ get_header(); ?>
  
             } elseif ( is_year() ) {
                 printf( __( 'Archivo: %s', 'diariorumbosur' ), '<span>' . get_the_date( 'Y' ) . '</span>' );
- 
+
             } else {
                 _e( 'Archivo', 'diariorumbosur' );
  
@@ -93,5 +96,6 @@ get_header(); ?>
 </div><!-- #content .site-content -->
 </section><!-- #primary .content-area -->
  
-<?php get_sidebar(); ?>
+
+
 <?php get_footer(); ?>

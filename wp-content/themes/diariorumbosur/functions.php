@@ -275,4 +275,14 @@ add_action( 'init', 'add_custom_taxonomies', 0 );
 
 add_filter('widget_text', 'do_shortcode');
 
+
+//is_search true para búsquedas vacías, así se muestra el template.
+add_action( 'parse_query', 'search_even_empty' );
+function search_even_empty($query)
+{
+    if( isset($_GET['s']) ):
+        $query->is_search = true;
+    endif;
+}
+
 ?>
